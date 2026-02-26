@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import PageHeader from "@/components/admin/PageHeader";
 
 const formatDate = () => {
   const now = new Date();
@@ -61,27 +62,19 @@ export default function Dashboard() {
   }, [orcamentos]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      {/* Header com boas-vindas */}
-      <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
-              Dashboard
-            </h1>
-            <p className="text-slate-500 mt-1">
-              {formatDate().replace(/^./, (c) => c.toUpperCase())}
-            </p>
-          </div>
-          <p className="text-sm text-slate-500">
-            Visão geral do sistema de orçamentos
-          </p>
-        </div>
-      </motion.header>
+    <div className="w-full">
+      <PageHeader
+        title="Dashboard"
+        description={`${formatDate().replace(/^./, (c) => c.toUpperCase())} · Visão geral do sistema de orçamentos`}
+        action={
+          <Link to="/admin/orcamentos/novo">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Orçamento
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

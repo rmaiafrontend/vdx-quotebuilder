@@ -58,18 +58,16 @@ const DesenhoGeometrico = ({ largura, altura, larguraFormatada, alturaFormatada 
   );
 };
 
-export default function PecaConferencia({ 
-  peca, 
+export default function PecaConferencia({
+  peca,
   unidadeOriginal,
-  onConfirmar, 
+  onConfirmar,
   confirmada,
   index,
   total,
-  puxadores = [],
-  onPuxadorChange,
-  configuracoesTecnicas = [], // Array de configurações técnicas da peça
-  itensConfiguracao = {}, // Objeto com itens por categoria: { puxador_tecnico: [...], ferragem_tecnica: [...] }
-  onConfiguracaoChange // Função para atualizar configurações: (categoria, valor) => void
+  configuracoesTecnicas = [],
+  itensConfiguracao = {},
+  onConfiguracaoChange
 }) {
   const largura = formatarMedida(peca.largura_real_mm, unidadeOriginal);
   const altura = formatarMedida(peca.altura_real_mm, unidadeOriginal);
@@ -177,11 +175,7 @@ export default function PecaConferencia({
                 : (itensConfiguracao[config.categoria] || []);
               
               const valorAtual = peca.configuracoes_tecnicas?.[configIndex]?.valor || '';
-              const categoriaNome = config.categoria === 'puxador_tecnico' 
-                ? 'Puxador Técnico'
-                : config.categoria === 'ferragem_tecnica'
-                ? 'Ferragem Técnica'
-                : config.categoria;
+              const categoriaNome = config.categoria || 'Configuração';
               
               return (
                 <div key={config.id || configIndex} className="mb-4">
@@ -224,47 +218,16 @@ export default function PecaConferencia({
           </div>
         )}
         
-        {/* Compatibilidade: manter puxador antigo se não houver configurações técnicas */}
-        {(!configuracoesTecnicas || configuracoesTecnicas.length === 0) && peca.tem_puxador && puxadores.length > 0 && (
-          <div className="mb-4">
-            <Label className="text-sm font-semibold text-slate-700 mb-2 block">
-              Puxador {!confirmada && <span className="text-red-500">*</span>}
-            </Label>
-            <Select 
-              value={peca.puxador || ''} 
-              onValueChange={onPuxadorChange}
-              disabled={confirmada}
-            >
-              <SelectTrigger className="h-12 border-2">
-                <SelectValue placeholder="Selecione o puxador" />
-              </SelectTrigger>
-              <SelectContent>
-                {puxadores.map(pux => (
-                  <SelectItem key={pux.id} value={pux.nome}>{pux.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!peca.puxador && !confirmada && (
-              <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                <span>⚠️</span> Obrigatório selecionar um puxador
-              </p>
-            )}
-          </div>
-        )}
-        
         {/* Botão de confirmação */}
         {!confirmada && (
           <Button 
             onClick={onConfirmar}
             disabled={
-              // Validar configurações obrigatórias
               (configuracoesTecnicas || []).some((config, idx) => {
                 if (!config.obrigatorio) return false;
                 const valor = peca.configuracoes_tecnicas?.[idx]?.valor;
                 return !valor || valor === '';
-              }) ||
-              // Compatibilidade: validar puxador antigo se não houver configurações
-              ((!configuracoesTecnicas || configuracoesTecnicas.length === 0) && peca.tem_puxador && !peca.puxador)
+              })
             }
             className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >

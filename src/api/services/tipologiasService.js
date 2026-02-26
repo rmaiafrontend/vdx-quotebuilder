@@ -11,15 +11,18 @@ const BASE = '/api/configuracao';
 /**
  * Converte form (snake_case) para o payload da API (novo schema camelCase).
  * API: categoriaId, nome, descricao, imagemUrl, ordem, ativo, tiposVidroIds, acessorioIds,
- * variaveis (simbolo, nome, label, unidadePadrao, escolherUnidade, valorDefault, obrigatoria, ordem),
- * pecas (nome, formulaLargura, formulaAltura, quantidade, ordem, tiposConfiguracaoIds, imagem_url).
- * Não enviar id no create (gerado pelo backend).
+ * variaveis (id?, simbolo, nome, label, ...), pecas (id?, nome, formulaLargura, ...).
+ * No create não envia id (gerado pelo backend). No PUT sempre envia id da tipologia e ids de variaveis/pecas quando existirem.
  */
-function tipologiaToApi(data) {
+function tipologiaToApi(data, tipologiaId = null) {
   if (!data) return data;
 
   const trim = (s) => (s != null && s !== '' ? String(s).trim() : null);
   const num = (n) => (n != null && n !== '' ? Number(n) : null);
+  const idOrNull = (n) => {
+    const v = num(n);
+    return v != null && !Number.isNaN(v) && v > 0 ? v : null;
+  };
 
   const result = {
     categoriaId: num(data.categoria_id) ?? 0,
@@ -30,32 +33,46 @@ function tipologiaToApi(data) {
     ativo: data.ativo != null ? Boolean(data.ativo) : true,
     tiposVidroIds: (data.tipos_vidro_ids || []).map(Number).filter((id) => !Number.isNaN(id)),
     acessorioIds: (data.acessorio_ids || []).map(Number).filter((id) => !Number.isNaN(id)),
-    variaveis: (data.variaveis || []).map((v) => ({
-      simbolo: trim(v.simbolo ?? v.nome) ?? '',
-      nome: trim(v.nome) ?? '',
-      label: trim(v.label ?? v.nome) ?? '',
-      unidadePadrao: trim(v.unidade_padrao) ?? '',
-      escolherUnidade: v.permite_alterar_unidade !== false,
-      valorDefault: num(v.valor_default) ?? 0,
-      obrigatoria: v.obrigatoria != null ? Boolean(v.obrigatoria) : true,
-      ordem: v.ordem != null ? Number(v.ordem) : 0,
-    })),
+    variaveis: (data.variaveis || []).map((v) => {
+      const base = {
+        simbolo: trim(v.simbolo ?? v.nome) ?? '',
+        nome: trim(v.nome) ?? '',
+        label: trim(v.label ?? v.nome) ?? '',
+        unidadePadrao: trim(v.unidade_padrao) ?? '',
+        escolherUnidade: v.permite_alterar_unidade !== false,
+        valorDefault: num(v.valor_default) ?? 0,
+        obrigatoria: v.obrigatoria != null ? Boolean(v.obrigatoria) : true,
+        ordem: v.ordem != null ? Number(v.ordem) : 0,
+      };
+      const id = idOrNull(v.id);
+      if (id != null) base.id = id;
+      return base;
+    }),
     pecas: (data.pecas || []).map((p) => {
-      const tiposConfigIds = (p.configuracoes_tecnicas || [])
-        .flatMap((c) => c.itens_ids || [])
-        .map(Number)
-        .filter((id) => !Number.isNaN(id) && id !== 0);
-      return {
+      // Itens de configuração: cada config tem categoria (tipo) + itens_ids (ids dos itens). Backend pode usar itens_ids ou itensIds.
+      const configs = p.configuracoes_tecnicas || p.configuracoesTecnicas || [];
+      const itensConfigIds = configs.flatMap((c) => {
+        const ids = c.itens_ids ?? c.itensIds ?? [];
+        return (Array.isArray(ids) ? ids : []).map(Number).filter((id) => !Number.isNaN(id) && id > 0);
+      });
+      const base = {
         nome: trim(p.nome) ?? '',
         formulaLargura: trim(p.formula_largura) ?? '',
         formulaAltura: trim(p.formula_altura) ?? '',
         quantidade: num(p.quantidade) ?? 1,
         ordem: p.ordem != null ? Number(p.ordem) : 0,
-        tiposConfiguracaoIds: tiposConfigIds,
+        itensConfiguracaoIds: itensConfigIds,
         imagem_url: trim(p.imagem_url) ?? '',
       };
+      const id = idOrNull(p.id);
+      if (id != null) base.id = id;
+      return base;
     }),
   };
+
+  if (tipologiaId != null && tipologiaId > 0) {
+    result.id = Number(tipologiaId);
+  }
 
   return result;
 }
@@ -84,7 +101,7 @@ export const tipologiasService = {
   },
 
   update(id, data) {
-    return apiClient.put(`${BASE}/tipologia/${id}`, tipologiaToApi(data));
+    return apiClient.put(`${BASE}/tipologia/${id}`, tipologiaToApi(data, id));
   },
 
   delete(id) {

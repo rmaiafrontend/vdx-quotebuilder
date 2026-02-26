@@ -1,6 +1,6 @@
 /**
- * Configurações técnicas: tipos-vidro, puxadores, ferragens, tipos-configuracao, itens-configuracao.
- * Bases: /api/configuracao/tipos-vidro, .../puxadores, .../ferragens, .../tipos-configuracao, .../itens-configuracao.
+ * Configurações técnicas (OpenAPI: tecnico-controller).
+ * URLs: /api/configuracao/tipos-vidro, tipos-configuracao, itens-configuracao.
  */
 
 import { apiClient } from '../apiClient';
@@ -26,8 +26,6 @@ function crud(base) {
 }
 
 export const tiposVidroTecnico = crud('/api/configuracao/tipos-vidro');
-export const puxadoresTecnico = crud('/api/configuracao/puxadores');
-export const ferragensTecnica = crud('/api/configuracao/ferragens');
 export const tiposConfiguracaoTecnica = crud('/api/configuracao/tipos-configuracao');
 
 export const itensConfiguracaoTecnica = {
@@ -52,8 +50,6 @@ export const itensConfiguracaoTecnica = {
 
 export const configTecnicasService = {
   tiposVidro: tiposVidroTecnico,
-  puxadores: puxadoresTecnico,
-  ferragens: ferragensTecnica,
   tiposConfiguracao: tiposConfiguracaoTecnica,
   itensConfiguracao: itensConfiguracaoTecnica
 };

@@ -158,7 +158,7 @@ export default function Produtos() {
     <div className="w-full">
       <PageHeader
         title="Produtos Comerciais"
-        description="Gerencie produtos comercializáveis (puxadores, ferragens, acessórios)"
+        description="Gerencie produtos comercializáveis (acessórios e outros)"
       />
 
       <Tabs defaultValue="produtos" className="w-full">

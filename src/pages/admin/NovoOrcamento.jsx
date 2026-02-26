@@ -37,7 +37,6 @@ export default function NovoOrcamento() {
   const [pecasCalculadas, setPecasCalculadas] = useState([]);
   const [pecaConferenciaAtual, setPecaConferenciaAtual] = useState(0);
   const [tipoVidroSelecionado, setTipoVidroSelecionado] = useState(null);
-  const [puxadorSelecionado, setPuxadorSelecionado] = useState(null);
   const [clienteInfo, setClienteInfo] = useState({ nome: '', telefone: '', email: '' });
   const [unidadeOriginal, setUnidadeOriginal] = useState('cm');
   const [totais, setTotais] = useState({ areaTotalRealM2: 0, areaTotalCobrancaM2: 0 });
@@ -59,20 +58,10 @@ export default function NovoOrcamento() {
     queryFn: () => entities.TipoVidroTecnico.filter({ ativo: true }, 'ordem')
   });
 
-  const { data: puxadoresTecnicos = [] } = useQuery({
-    queryKey: ['puxadoresTecnicos'],
-    queryFn: () => entities.PuxadorTecnico.filter({ ativo: true }, 'nome')
-  });
-
   // Compatibilidade: manter queries antigas durante migração
   const { data: tiposVidro = [] } = useQuery({
     queryKey: ['tiposVidro'],
     queryFn: () => entities.TipoVidro.filter({ ativo: true }, 'ordem')
-  });
-
-  const { data: puxadores = [] } = useQuery({
-    queryKey: ['puxadores'],
-    queryFn: () => entities.Puxador.filter({ ativo: true })
   });
 
   // Filtrar tipos de vidro baseado na tipologia selecionada
@@ -87,7 +76,8 @@ export default function NovoOrcamento() {
     // Caso contrário, mostrar todos
     return todosTipos;
   }, [tipologiaSelecionada, tiposVidroTecnicos, tiposVidro]);
-  const puxadoresDisponiveis = puxadoresTecnicos.length > 0 ? puxadoresTecnicos : puxadores;
+
+  const itensConfiguracao = useMemo(() => ({}), []);
 
   // Tipologias filtradas por categoria
   const tipologiasFiltradas = useMemo(() => {
@@ -109,10 +99,12 @@ export default function NovoOrcamento() {
   // Inicializar variáveis quando tipologia é selecionada
   const selecionarTipologia = (tipologia) => {
     setTipologiaSelecionada(tipologia);
+    const unidadePadrao = (v) => v?.unidade_padrao ?? v?.unidadePadrao ?? 'cm';
     const vars = tipologia.variaveis?.map(v => ({
       ...v,
       valor: '',
-      unidade: v.unidade_padrao || 'cm'
+      unidade: unidadePadrao(v),
+      unidade_padrao: unidadePadrao(v),
     })) || [];
     setVariaveisPreenchidas(vars);
     // Não avança mais para etapa 3, permanece na etapa 2
@@ -163,13 +155,6 @@ export default function NovoOrcamento() {
     } else {
       setEtapaAtual(4); // Nova etapa 4 (antiga etapa 5)
     }
-  };
-
-  // Atualizar puxador da peça
-  const atualizarPuxadorPeca = (index, puxador) => {
-    const novasPecas = [...pecasCalculadas];
-    novasPecas[index] = { ...novasPecas[index], puxador };
-    setPecasCalculadas(novasPecas);
   };
 
   // Calcular preço final
@@ -424,7 +409,7 @@ export default function NovoOrcamento() {
                             nome={variavel.nome}
                             valor={variavel.valor}
                             unidade={variavel.unidade}
-                            unidadePadrao={variavel.unidade_padrao}
+                            unidadePadrao={variavel.unidade_padrao ?? variavel.unidadePadrao ?? 'cm'}
                             permiteAlterarUnidade={variavel.permite_alterar_unidade !== false}
                             onChange={(data) => atualizarVariavel(index, data)}
                           />
@@ -517,8 +502,6 @@ export default function NovoOrcamento() {
                     confirmada={pecasCalculadas[pecaConferenciaAtual]?.conferido}
                     index={pecaConferenciaAtual}
                     total={pecasCalculadas.length}
-                    puxadores={puxadoresDisponiveis}
-                    onPuxadorChange={(puxador) => atualizarPuxadorPeca(pecaConferenciaAtual, puxador)}
                     configuracoesTecnicas={obterConfiguracoesTecnicasPeca(pecasCalculadas[pecaConferenciaAtual])}
                     itensConfiguracao={itensConfiguracao}
                     onConfiguracaoChange={(configIndex, valor) => 

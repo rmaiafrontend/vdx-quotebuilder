@@ -48,7 +48,7 @@ export default function TipoConfigModal({
               <Input
                 value={formState.nome}
                 onChange={(e) => setFormState((p) => ({ ...p, nome: e.target.value }))}
-                placeholder="Puxador Técnico"
+                placeholder="Tipo de configuração"
                 className="mt-1"
               />
             </div>

@@ -77,11 +77,6 @@ export default function OrcamentoPublico() {
     queryFn: () => entities.TipoVidroTecnico.filter({ ativo: true }, 'ordem')
   });
 
-  const { data: puxadoresTecnicos = [] } = useQuery({
-    queryKey: ['puxadoresTecnicos'],
-    queryFn: () => entities.PuxadorTecnico.filter({ ativo: true }, 'nome')
-  });
-
   // Produtos Comerciais (itens vendáveis)
   const { data: produtos = [] } = useQuery({
     queryKey: ['produtos'],
@@ -92,11 +87,6 @@ export default function OrcamentoPublico() {
   const { data: tiposVidro = [] } = useQuery({
     queryKey: ['tiposVidro'],
     queryFn: () => entities.TipoVidro.filter({ ativo: true }, 'ordem')
-  });
-
-  const { data: puxadores = [] } = useQuery({
-    queryKey: ['puxadores'],
-    queryFn: () => entities.Puxador.filter({ ativo: true })
   });
 
   const { data: acessorios = [] } = useQuery({
@@ -116,25 +106,14 @@ export default function OrcamentoPublico() {
     // Caso contrário, mostrar todos
     return todosTipos;
   }, [tipologiaSelecionada, tiposVidroTecnicos, tiposVidro]);
-  const puxadoresDisponiveis = puxadoresTecnicos.length > 0 ? puxadoresTecnicos : puxadores;
+
   // Acessórios: usar produtos comerciais da categoria 'acessorio' se disponíveis, senão usar os antigos
   const acessoriosDisponiveis = produtos.filter(p => p.categoria === 'acessorio').length > 0 
     ? produtos.filter(p => p.categoria === 'acessorio')
     : acessorios;
 
-  // Buscar ferragens técnicas para configurações
-  const { data: ferragensTecnicas = [] } = useQuery({
-    queryKey: ['ferragensTecnicas'],
-    queryFn: () => entities.FerragemTecnica.filter({ ativo: true }, 'nome')
-  });
-
-  // Organizar itens de configuração por categoria
-  const itensConfiguracao = useMemo(() => {
-    return {
-      puxador_tecnico: puxadoresDisponiveis,
-      ferragem_tecnica: ferragensTecnicas
-    };
-  }, [puxadoresDisponiveis, ferragensTecnicas]);
+  // Itens de configuração técnica por categoria (tipos vindos do backend)
+  const itensConfiguracao = useMemo(() => ({}), []);
 
   // Company data
   const company = mockCompany;
@@ -165,10 +144,12 @@ export default function OrcamentoPublico() {
 
   const selecionarTipologia = (tipologia) => {
     setTipologiaSelecionada(tipologia);
+    const unidadePadrao = (v) => v?.unidade_padrao ?? v?.unidadePadrao ?? 'cm';
     const vars = tipologia.variaveis?.map(v => ({
       ...v,
       valor: '',
-      unidade: v.unidade_padrao || 'cm'
+      unidade: unidadePadrao(v),
+      unidade_padrao: unidadePadrao(v),
     })) || [];
     setVariaveisPreenchidas(vars);
     setAcessoriosSelecionados([]);
@@ -359,12 +340,6 @@ export default function OrcamentoPublico() {
     setCarrinho([...carrinho, itemCarrinho]);
     setMostrarCarrinho(false);
     setEtapaAtual(5);
-  };
-
-  const atualizarPuxadorPeca = (index, puxador) => {
-    const novasPecas = [...pecasCalculadas];
-    novasPecas[index] = { ...novasPecas[index], puxador };
-    setPecasCalculadas(novasPecas);
   };
 
   // Atualizar configuração técnica de uma peça
@@ -662,7 +637,7 @@ export default function OrcamentoPublico() {
                             nome={variavel.nome}
                             valor={variavel.valor}
                             unidade={variavel.unidade}
-                            unidadePadrao={variavel.unidade_padrao}
+                            unidadePadrao={variavel.unidade_padrao ?? variavel.unidadePadrao ?? 'cm'}
                             permiteAlterarUnidade={variavel.permite_alterar_unidade !== false}
                             onChange={(data) => atualizarVariavel(index, data)}
                           />
@@ -763,8 +738,6 @@ export default function OrcamentoPublico() {
                     confirmada={pecasCalculadas[pecaConferenciaAtual]?.conferido}
                     index={pecaConferenciaAtual}
                     total={pecasCalculadas.length}
-                    puxadores={puxadoresDisponiveis}
-                    onPuxadorChange={(puxador) => atualizarPuxadorPeca(pecaConferenciaAtual, puxador)}
                     configuracoesTecnicas={obterConfiguracoesTecnicasPeca(pecasCalculadas[pecaConferenciaAtual])}
                     itensConfiguracao={itensConfiguracao}
                     onConfiguracaoChange={(configIndex, valor) => 

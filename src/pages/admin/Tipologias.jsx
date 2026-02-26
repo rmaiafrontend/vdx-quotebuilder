@@ -47,7 +47,7 @@ import { toast } from "@/components/ui/use-toast";
 import PageHeader from "@/components/admin/PageHeader";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 import { validarFormulasTipologia } from "@/components/utils/calculoUtils";
-import { FORM_INICIAL, VARIAVEL_INICIAL, PECA_INICIAL } from "./tipologias/constants";
+import { FORM_INICIAL, VARIAVEL_INICIAL, PECA_INICIAL, CONFIGURACAO_TECNICA_INICIAL } from "./tipologias/constants";
 import { useTipologiaForm } from "./tipologias/hooks/useTipologiaForm";
 import TipologiaList from "./tipologias/TipologiaList";
 
@@ -110,16 +110,6 @@ export default function Tipologias() {
     queryFn: () => entities.TipoVidroTecnico.filter({ ativo: true }, 'ordem')
   });
 
-  const { data: puxadoresTecnicos = [] } = useQuery({
-    queryKey: ['puxadoresTecnicos'],
-    queryFn: () => entities.PuxadorTecnico.filter({ ativo: true }, 'nome')
-  });
-
-  const { data: ferragensTecnicas = [] } = useQuery({
-    queryKey: ['ferragensTecnicas'],
-    queryFn: () => entities.FerragemTecnica.filter({ ativo: true }, 'nome')
-  });
-
   const { data: tiposConfiguracaoTecnica = [] } = useQuery({
     queryKey: ['tiposConfiguracaoTecnica'],
     queryFn: () => entities.TipoConfiguracaoTecnica.filter({ ativo: true }, 'ordem')
@@ -176,15 +166,23 @@ export default function Tipologias() {
 
   const abrirEdicao = (tipologia) => {
     setTipologiaEditando(tipologia);
+    // API pode retornar categoriaId (camelCase); form usa categoria_id
+    const categoriaId = tipologia.categoriaId ?? tipologia.categoria_id ?? tipologia.categoria_ids?.[0] ?? '';
+    const tiposVidroIds = tipologia.tiposVidroIds ?? tipologia.tipos_vidro_ids ?? [];
+    const acessorioIds = tipologia.acessorioIds ?? tipologia.acessorio_ids ?? [];
     setFormData({
       nome: tipologia.nome || '',
       descricao: tipologia.descricao || '',
-      categoria_id: tipologia.categoria_id || (tipologia.categoria_ids && tipologia.categoria_ids.length > 0 ? tipologia.categoria_ids[0] : ''),
+      categoria_id: categoriaId,
       imagens: tipologia.imagens || [],
       variaveis: (tipologia.variaveis || []).map((v, i) => ({
         ...VARIAVEL_INICIAL,
         ...v,
         id: v.id || `var_${i}_${Date.now()}`,
+        // Backend pode enviar camelCase; garantir snake_case para o form
+        unidade_padrao: v.unidade_padrao ?? v.unidadePadrao ?? VARIAVEL_INICIAL.unidade_padrao,
+        permite_alterar_unidade: v.permite_alterar_unidade ?? v.escolherUnidade ?? VARIAVEL_INICIAL.permite_alterar_unidade,
+        valor_default: v.valor_default ?? v.valorDefault ?? VARIAVEL_INICIAL.valor_default,
       })),
       pecas: (tipologia.pecas || []).map((peca, i) => {
         const pecaBackend = { ...peca };
@@ -193,21 +191,45 @@ export default function Tipologias() {
           pecaBackend.formula_largura = pecaBackend.formulaLargura;
         if (pecaBackend.formula_altura == null && pecaBackend.formulaAltura != null)
           pecaBackend.formula_altura = pecaBackend.formulaAltura;
+        // Normalizar configuracoes_tecnicas: backend pode enviar array com camelCase ou apenas tiposConfiguracaoIds (flat)
+        let configsTecnicas = pecaBackend.configuracoes_tecnicas ?? pecaBackend.configuracoesTecnicas ?? [];
+        const flatIds = pecaBackend.itensConfiguracaoIds ?? pecaBackend.tiposConfiguracaoIds ?? pecaBackend.tipos_configuracao_ids ?? [];
+        if (configsTecnicas.length === 0 && Array.isArray(flatIds) && flatIds.length > 0) {
+          // Reconstruir por tipo: agrupar ids pelos tipos de configuração (via itensConfiguracaoTecnica)
+          const porTipo = {};
+          flatIds.forEach((itemId) => {
+            const item = itensConfiguracaoTecnica.find(
+              (it) => Number(it.id) === Number(itemId) || it.id === itemId
+            );
+            const tipoId = item?.tipo_configuracao_id ?? item?.tipoConfiguracaoId ?? item?.tipo_configuracao_id;
+            if (tipoId != null) {
+              if (!porTipo[tipoId]) porTipo[tipoId] = [];
+              porTipo[tipoId].push(typeof itemId === 'number' ? itemId : Number(itemId));
+            }
+          });
+          configsTecnicas = Object.entries(porTipo).map(([categoria, itens_ids]) => ({
+            categoria: Number(categoria),
+            itens_ids,
+            obrigatorio: false,
+          }));
+        } else {
+          configsTecnicas = configsTecnicas.map((c) => ({
+            ...CONFIGURACAO_TECNICA_INICIAL,
+            ...c,
+            categoria: c.categoria ?? c.tipoConfiguracaoId ?? '',
+            itens_ids: c.itens_ids ?? c.itensIds ?? [],
+            obrigatorio: c.obrigatorio ?? false,
+          }));
+        }
         return {
           ...PECA_INICIAL,
           ...pecaBackend,
           id: pecaBackend.id || `peca_${i}_${Date.now()}`,
-          configuracoes_tecnicas: pecaBackend.configuracoes_tecnicas || (
-            pecaBackend.tem_puxador ? [{
-              categoria: 'puxador_tecnico',
-              itens_ids: [],
-              obrigatorio: true
-            }] : []
-          ),
+          configuracoes_tecnicas: configsTecnicas,
         };
       }),
-      acessorio_ids: tipologia.acessorio_ids || [],
-      tipos_vidro_ids: tipologia.tipos_vidro_ids || [],
+      acessorio_ids: acessorioIds,
+      tipos_vidro_ids: tiposVidroIds,
       ordem: tipologia.ordem || 0,
       ativo: tipologia.ativo !== false
     });
@@ -430,7 +452,7 @@ export default function Tipologias() {
                     </div>
                   ) : (
                     <Select
-                      value={formData.categoria_id || undefined}
+                      value={formData.categoria_id != null && formData.categoria_id !== '' ? String(formData.categoria_id) : undefined}
                       onValueChange={selecionarCategoria}
                     >
                       <SelectTrigger>
@@ -438,7 +460,7 @@ export default function Tipologias() {
                       </SelectTrigger>
                       <SelectContent>
                         {categorias.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id}>
+                          <SelectItem key={cat.id} value={String(cat.id)}>
                             {cat.nome}
                           </SelectItem>
                         ))}

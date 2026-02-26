@@ -76,31 +76,19 @@ export const entities = {
   },
 
   Puxador: {
-    list: async (orderBy = 'nome') => {
-      const list = await configTecnicasService.puxadores.list({ orderBy });
-      return sortData(ensureList(list), orderBy);
-    },
-    filter: async (filters = {}, orderBy = 'nome') => {
-      const list = await configTecnicasService.puxadores.list({ orderBy });
-      return sortData(filterData(ensureList(list), filters), orderBy);
-    },
-    create: (data) => configTecnicasService.puxadores.create(data),
-    update: (id, data) => configTecnicasService.puxadores.update(id, data),
-    delete: (id) => configTecnicasService.puxadores.delete(id)
+    list: async () => [],
+    filter: async () => [],
+    create: () => Promise.reject(new Error('Puxador: API removida')),
+    update: () => Promise.reject(new Error('Puxador: API removida')),
+    delete: () => Promise.reject(new Error('Puxador: API removida'))
   },
 
   Acessorio: {
-    list: async (orderBy = 'ordem') => {
-      const list = await configTecnicasService.ferragens.list({ orderBy });
-      return sortData(ensureList(list), orderBy);
-    },
-    filter: async (filters = {}, orderBy = 'ordem') => {
-      const list = await configTecnicasService.ferragens.list({ orderBy });
-      return sortData(filterData(ensureList(list), filters), orderBy);
-    },
-    create: (data) => configTecnicasService.ferragens.create(data),
-    update: (id, data) => configTecnicasService.ferragens.update(id, data),
-    delete: (id) => configTecnicasService.ferragens.delete(id)
+    list: async () => [],
+    filter: async () => [],
+    create: () => Promise.reject(new Error('Acessório: use Produto ou outra API')),
+    update: () => Promise.reject(new Error('Acessório: use Produto ou outra API')),
+    delete: () => Promise.reject(new Error('Acessório: use Produto ou outra API'))
   },
 
   Orcamento: {
@@ -134,31 +122,11 @@ export const entities = {
   },
 
   PuxadorTecnico: {
-    list: async (orderBy = 'nome') => {
-      const list = await configTecnicasService.puxadores.list({ orderBy });
-      return ensureList(list);
-    },
-    filter: async (filters = {}, orderBy = 'nome') => {
-      const list = await configTecnicasService.puxadores.list({ orderBy });
-      return sortData(filterData(ensureList(list), filters), orderBy);
-    },
-    create: (data) => configTecnicasService.puxadores.create(data),
-    update: (id, data) => configTecnicasService.puxadores.update(id, data),
-    delete: (id) => configTecnicasService.puxadores.delete(id)
-  },
-
-  FerragemTecnica: {
-    list: async (orderBy = 'nome') => {
-      const list = await configTecnicasService.ferragens.list({ orderBy });
-      return ensureList(list);
-    },
-    filter: async (filters = {}, orderBy = 'nome') => {
-      const list = await configTecnicasService.ferragens.list({ orderBy });
-      return sortData(filterData(ensureList(list), filters), orderBy);
-    },
-    create: (data) => configTecnicasService.ferragens.create(data),
-    update: (id, data) => configTecnicasService.ferragens.update(id, data),
-    delete: (id) => configTecnicasService.ferragens.delete(id)
+    list: async () => [],
+    filter: async () => [],
+    create: () => Promise.reject(new Error('PuxadorTecnico: API removida')),
+    update: () => Promise.reject(new Error('PuxadorTecnico: API removida')),
+    delete: () => Promise.reject(new Error('PuxadorTecnico: API removida'))
   },
 
   TipoConfiguracaoTecnica: {
