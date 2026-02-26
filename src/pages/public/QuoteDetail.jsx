@@ -79,121 +79,125 @@ export default function QuoteDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <header 
-        className="px-5 py-3.5 flex items-center justify-between"
-        style={{ backgroundColor: primaryColor }}
+      <header
+        className="px-5 py-4 flex items-center justify-between shadow-md"
+        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="w-9 h-9 rounded-lg bg-white p-1 object-cover" />
+            <img src={company.logo_url} alt={company.name} className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-sm" />
           ) : (
-            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
-              <span className="font-bold text-lg" style={{ color: primaryColor }}>
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/30">
+              <span className="font-bold text-lg text-white">
                 {company?.name?.charAt(0) || 'V'}
               </span>
             </div>
           )}
-          <h1 className="text-white font-semibold">
+          <h1 className="text-white font-semibold text-lg tracking-tight">
             Detalhes do Orçamento
           </h1>
         </div>
-        <button className="relative p-2 hover:bg-white/10 rounded-lg transition-colors">
-          <Bell className="w-5 h-5 text-white" />
+        <button className="relative p-2.5 hover:bg-white/15 rounded-xl transition-colors">
+          <Bell className="w-5 h-5 text-white/90" />
         </button>
       </header>
 
       {/* Main Content */}
-      <div className="px-4 py-5 max-w-2xl mx-auto">
-        {/* Back Button */}
+      <div className="px-4 py-6 max-w-2xl mx-auto">
+        {/* Back */}
         <button
           onClick={() => navigate('/historico')}
-          className="flex items-center gap-2 mb-5 text-sm font-medium hover:opacity-70 transition-opacity"
+          className="flex items-center gap-1.5 mb-5 text-sm font-medium hover:opacity-70 transition-opacity"
           style={{ color: primaryColor }}
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voltar</span>
         </button>
 
-        {/* Quote Info Card */}
-        <Card className="mb-5">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-3">
-                <span>{quote.numero || 'Orçamento'}</span>
-                <Badge className={statusConfig.color}>
-                  {statusConfig.label}
-                </Badge>
+        {/* Quote Info */}
+        <Card className="mb-5 rounded-2xl border-slate-200/80 shadow-sm overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-lg tracking-tight">
+                {quote.numero || 'Orçamento'}
               </CardTitle>
+              <Badge className={`${statusConfig.color} shrink-0`}>
+                {statusConfig.label}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {quote.tipologia_nome && (
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Produto</p>
-                  <p className="font-medium text-slate-900">{quote.tipologia_nome}</p>
-                </div>
-              )}
-              
-              {quote.tipo_vidro_nome && (
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Tipo de Vidro</p>
-                  <p className="font-medium text-slate-900">{quote.tipo_vidro_nome}</p>
+                <div className="rounded-xl bg-slate-50 p-3.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Produto</p>
+                  <p className="font-semibold text-slate-900 text-sm">{quote.tipologia_nome}</p>
                 </div>
               )}
 
-              {quote.preco_total && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-slate-500 mb-1">Valor Total</p>
-                  <p className="text-2xl font-bold" style={{ color: primaryColor }}>
-                    R$ {quote.preco_total.toLocaleString('pt-BR', { 
-                      minimumFractionDigits: 2, 
-                      maximumFractionDigits: 2 
-                    })}
-                  </p>
+              {quote.tipo_vidro_nome && (
+                <div className="rounded-xl bg-slate-50 p-3.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Tipo de Vidro</p>
+                  <p className="font-semibold text-slate-900 text-sm">{quote.tipo_vidro_nome}</p>
                 </div>
               )}
 
               {quote.created_date && (
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Data de Criação</p>
-                  <p className="font-medium text-slate-900">
-                    {format(new Date(quote.created_date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                <div className="rounded-xl bg-slate-50 p-3.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Criado em</p>
+                  <p className="font-semibold text-slate-900 text-sm">
+                    {format(new Date(quote.created_date), "dd 'de' MMM 'de' yyyy · HH:mm", { locale: ptBR })}
                   </p>
                 </div>
               )}
             </div>
+
+            {quote.preco_total != null && (
+              <div className="mt-4 pt-4 border-t border-slate-200/80 flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500">Valor Total</span>
+                <span className="text-2xl font-bold tabular-nums" style={{ color: primaryColor }}>
+                  R$ {Number(quote.preco_total).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Histórico */}
+        {/* Timeline */}
         {quote.history && quote.history.length > 0 && (
-          <Card>
-            <CardHeader>
+          <Card className="rounded-2xl border-slate-200/80 shadow-sm overflow-hidden">
+            <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-slate-500" />
-                <CardTitle>Histórico</CardTitle>
+                <History className="w-4 h-4 text-slate-500" />
+                <CardTitle className="text-base">Histórico</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 border-l-2 border-slate-200 pl-4">
+              <div className="relative pl-6 space-y-4">
+                <span className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-slate-200 rounded-full" />
                 {quote.history
                   .sort((a, b) => new Date(b.date) - new Date(a.date))
                   .map((entry, index) => (
                     <div key={index} className="relative">
-                      <div className="absolute -left-6 top-2 w-3 h-3 rounded-full bg-blue-500 border-2 border-white"></div>
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <p className="text-sm font-medium text-slate-900 mb-1">{entry.action}</p>
-                        <div className="flex items-center gap-2">
+                      <span
+                        className="absolute -left-6 top-3 w-3 h-3 rounded-full border-2 border-white shadow-sm"
+                        style={{ backgroundColor: index === 0 ? primaryColor : '#cbd5e1' }}
+                      />
+                      <div className="rounded-xl bg-slate-50 p-3.5">
+                        <p className="text-sm font-medium text-slate-900">{entry.action}</p>
+                        <div className="flex items-center gap-2 mt-1">
                           <p className="text-xs text-slate-500">
-                            {format(new Date(entry.date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                            {format(new Date(entry.date), "dd MMM yyyy · HH:mm", { locale: ptBR })}
                           </p>
                           {entry.user && (
                             <>
-                              <span className="text-xs text-slate-300">•</span>
-                              <p className="text-xs text-slate-500">por {entry.user}</p>
+                              <span className="text-xs text-slate-300">·</span>
+                              <p className="text-xs text-slate-500">{entry.user}</p>
                             </>
                           )}
                         </div>

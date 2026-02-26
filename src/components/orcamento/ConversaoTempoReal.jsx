@@ -2,7 +2,7 @@ import React from "react";
 import { converterDeMM } from "../utils/calculoUtils";
 
 export default function ConversaoTempoReal({ valorMM }) {
-  if (!valorMM || valorMM === 0) {
+  if (valorMM == null || !Number.isFinite(valorMM) || valorMM === 0) {
     return (
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <div className="bg-slate-50 rounded-md sm:rounded-lg p-1.5 sm:p-2 text-center border border-slate-200">

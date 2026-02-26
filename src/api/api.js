@@ -1,617 +1,231 @@
-// API client com dados mockados para desenvolvimento
-import {
-  mockCategorias,
-  mockTipologias,
-  mockTiposVidro,
-  mockPuxadores,
-  mockAcessorios,
-  mockOrcamentos,
-  mockTiposVidroTecnicos,
-  mockPuxadoresTecnicos,
-  mockFerragensTecnicas,
-  mockProdutos,
-  mockCategoriasProduto,
-  mockTiposConfiguracaoTecnica,
-  mockItensConfiguracaoTecnica
-} from './mockData';
+// API: todas as entidades e integrações delegam para os services (backend real)
+import { categoriasService } from './services/categoriasService';
+import { tipologiasService } from './services/tipologiasService';
+import { integracoesService } from './services/integracoesService';
+import { produtosService } from './services/produtosService';
+import { orcamentosService } from './services/orcamentosService';
+import { ORCAMENTOS_EXEMPLO } from '../constants/orcamentosExemplo';
+import { categoriasProdutoService } from './services/categoriasProdutoService';
+import { configTecnicasService } from './services/configTecnicasService';
+import { uploadService } from './services/uploadService';
 
-// Armazenamento em memória (simula banco de dados)
-let storage = {
-  categorias: [...mockCategorias],
-  tipologias: [...mockTipologias],
-  // Configurações Técnicas (não são produtos comercializáveis)
-  tiposVidroTecnicos: [...mockTiposVidroTecnicos], // Características técnicas do vidro
-  puxadoresTecnicos: [...mockPuxadoresTecnicos], // Tipos de furação/configuração
-  ferragensTecnicas: [...mockFerragensTecnicas], // Compatibilidades e regras construtivas
-  tiposConfiguracaoTecnica: [...mockTiposConfiguracaoTecnica], // Tipos/categorias de configurações técnicas
-  itensConfiguracaoTecnica: [...mockItensConfiguracaoTecnica], // Itens/elementos dentro de cada categoria
-  // Produtos Comerciais (itens vendáveis)
-  categoriasProduto: [...mockCategoriasProduto], // Categorias de produtos
-  produtos: [...mockProdutos], // Produtos comercializáveis (puxadores, ferragens, acessórios)
-  orcamentos: [...mockOrcamentos],
-  // Mantido para compatibilidade durante migração
-  tiposVidro: [...mockTiposVidro],
-  puxadores: [...mockPuxadores],
-  acessorios: [...mockAcessorios]
-};
-
-// Função auxiliar para ordenar
 const sortData = (data, orderBy) => {
-  if (!orderBy) return data;
-  
-  const [field, direction] = orderBy.startsWith('-') 
-    ? [orderBy.slice(1), 'desc'] 
-    : [orderBy, 'asc'];
-  
+  if (!orderBy || !Array.isArray(data)) return data ?? [];
+  const [field, direction] = orderBy.startsWith('-') ? [orderBy.slice(1), 'desc'] : [orderBy, 'asc'];
   return [...data].sort((a, b) => {
     let aVal = a[field];
     let bVal = b[field];
-    
-    // Tratamento especial para datas
     if (field.includes('date')) {
       aVal = new Date(aVal).getTime();
       bVal = new Date(bVal).getTime();
     }
-    
     if (aVal < bVal) return direction === 'asc' ? -1 : 1;
     if (aVal > bVal) return direction === 'asc' ? 1 : -1;
     return 0;
   });
 };
 
-// Função auxiliar para filtrar
 const filterData = (data, filters) => {
-  if (!filters || Object.keys(filters).length === 0) return data;
-  
-  return data.filter(item => {
-    return Object.entries(filters).every(([key, value]) => {
-      if (Array.isArray(value)) {
-        return value.includes(item[key]);
-      }
+  if (!filters || Object.keys(filters).length === 0) return data ?? [];
+  return (data ?? []).filter(item =>
+    Object.entries(filters).every(([key, value]) => {
+      if (Array.isArray(value)) return value.includes(item[key]);
       return item[key] === value;
-    });
-  });
+    })
+  );
 };
 
-// Entity operations
+const ensureList = (res) => (Array.isArray(res) ? res : res?.data ?? []);
+
+// Entidades: sempre via API
 export const entities = {
+  Categoria: {
+    list: async (orderBy = 'ordem') => sortData(await categoriasService.list(), orderBy),
+    filter: async (filters = {}, orderBy = 'ordem') => {
+      const list = await categoriasService.list();
+      return sortData(filterData(list, filters), orderBy);
+    },
+    create: (data) => categoriasService.create(data),
+    update: (id, data) => categoriasService.update(id, data),
+    delete: (id) => categoriasService.delete(id)
+  },
+
+  Tipologia: {
+    list: async (orderBy = 'ordem') => sortData(await tipologiasService.list(), orderBy),
+    filter: async (filters = {}, orderBy = 'ordem') => {
+      const list = await tipologiasService.list();
+      return sortData(filterData(list, filters), orderBy);
+    },
+    create: (data) => tipologiasService.create(data),
+    update: (id, data) => tipologiasService.update(id, data),
+    delete: (id) => tipologiasService.delete(id)
+  },
+
   TipoVidro: {
     list: async (orderBy = 'ordem') => {
-      return sortData(storage.tiposVidro, orderBy);
+      const list = await configTecnicasService.tiposVidro.list({ orderBy });
+      return sortData(ensureList(list), orderBy);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.tiposVidro, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.tiposVidro.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `vid-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.tiposVidro.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.tiposVidro.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de vidro não encontrado');
-      storage.tiposVidro[index] = {
-        ...storage.tiposVidro[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.tiposVidro[index];
-    },
-    delete: async (id) => {
-      const index = storage.tiposVidro.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de vidro não encontrado');
-      storage.tiposVidro.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.tiposVidro.create(data),
+    update: (id, data) => configTecnicasService.tiposVidro.update(id, data),
+    delete: (id) => configTecnicasService.tiposVidro.delete(id)
   },
+
   Puxador: {
-    list: async () => {
-      return storage.puxadores;
+    list: async (orderBy = 'nome') => {
+      const list = await configTecnicasService.puxadores.list({ orderBy });
+      return sortData(ensureList(list), orderBy);
     },
-    filter: async (filters = {}) => {
-      return filterData(storage.puxadores, filters);
+    filter: async (filters = {}, orderBy = 'nome') => {
+      const list = await configTecnicasService.puxadores.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `pux-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.puxadores.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.puxadores.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Puxador não encontrado');
-      storage.puxadores[index] = {
-        ...storage.puxadores[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.puxadores[index];
-    },
-    delete: async (id) => {
-      const index = storage.puxadores.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Puxador não encontrado');
-      storage.puxadores.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.puxadores.create(data),
+    update: (id, data) => configTecnicasService.puxadores.update(id, data),
+    delete: (id) => configTecnicasService.puxadores.delete(id)
   },
+
   Acessorio: {
     list: async (orderBy = 'ordem') => {
-      return sortData(storage.acessorios, orderBy);
+      const list = await configTecnicasService.ferragens.list({ orderBy });
+      return sortData(ensureList(list), orderBy);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.acessorios, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.ferragens.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `acc-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.acessorios.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.acessorios.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Acessório não encontrado');
-      storage.acessorios[index] = {
-        ...storage.acessorios[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.acessorios[index];
-    },
-    delete: async (id) => {
-      const index = storage.acessorios.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Acessório não encontrado');
-      storage.acessorios.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.ferragens.create(data),
+    update: (id, data) => configTecnicasService.ferragens.update(id, data),
+    delete: (id) => configTecnicasService.ferragens.delete(id)
   },
-  Categoria: {
-    list: async (orderBy = 'ordem') => {
-      return sortData(storage.categorias, orderBy);
-    },
-    filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.categorias, filters);
-      return sortData(filtered, orderBy);
-    },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `cat-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.categorias.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.categorias.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Categoria não encontrada');
-      storage.categorias[index] = {
-        ...storage.categorias[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.categorias[index];
-    },
-    delete: async (id) => {
-      const index = storage.categorias.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Categoria não encontrada');
-      storage.categorias.splice(index, 1);
-      return { id };
-    }
-  },
-  Tipologia: {
-    list: async (orderBy = 'ordem') => {
-      return sortData(storage.tipologias, orderBy);
-    },
-    filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.tipologias, filters);
-      return sortData(filtered, orderBy);
-    },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `tip-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.tipologias.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.tipologias.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipologia não encontrada');
-      storage.tipologias[index] = {
-        ...storage.tipologias[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.tipologias[index];
-    },
-    delete: async (id) => {
-      const index = storage.tipologias.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipologia não encontrada');
-      storage.tipologias.splice(index, 1);
-      return { id };
-    }
-  },
+
   Orcamento: {
     list: async (orderBy = '-created_date', limit = 100) => {
-      const sorted = sortData(storage.orcamentos, orderBy);
-      return limit ? sorted.slice(0, limit) : sorted;
+      const fromApi = await orcamentosService.list({ orderBy, limit });
+      const list = ensureList(fromApi);
+      const merged = [...ORCAMENTOS_EXEMPLO, ...list];
+      return sortData(merged, orderBy);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.orcamentos, filters);
-      return sortData(filtered, orderBy);
+      const list = await orcamentosService.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      // Gerar número de orçamento sequencial
-      const lastNumber = storage.orcamentos.length > 0
-        ? parseInt(storage.orcamentos[storage.orcamentos.length - 1].numero.split('-')[2]) || 0
-        : 0;
-      const newNumber = `ORC-2024-${String(lastNumber + 1).padStart(3, '0')}`;
-      
-      const now = new Date().toISOString();
-      const newItem = {
-        ...data,
-        id: `orc-${Date.now()}`,
-        numero: newNumber,
-        created_date: now,
-        updated_date: now,
-        history: data.history || [
-          { 
-            date: now, 
-            action: 'Orçamento criado', 
-            user: data.cliente_nome || 'Cliente' 
-          }
-        ]
-      };
-      storage.orcamentos.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.orcamentos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Orçamento não encontrado');
-      
-      const now = new Date().toISOString();
-      const existing = storage.orcamentos[index];
-      
-      // Adicionar entrada no histórico se o status mudou
-      let newHistory = existing.history || [];
-      if (data.status && data.status !== existing.status) {
-        const statusLabels = {
-          rascunho: 'Rascunho',
-          aguardando_aprovacao: 'Aguardando Aprovação',
-          aguardando_pagamento: 'Aguardando Pagamento',
-          em_producao: 'Em Produção',
-          aguardando_retirada: 'Pronto para Retirada',
-          concluido: 'Concluído',
-          cancelado: 'Cancelado'
-        };
-        newHistory = [
-          ...newHistory,
-          {
-            date: now,
-            action: `Status alterado para: ${statusLabels[data.status] || data.status}`,
-            user: 'Sistema'
-          }
-        ];
-      }
-      
-      // Adicionar histórico customizado se fornecido
-      if (data.history && Array.isArray(data.history)) {
-        newHistory = [...newHistory, ...data.history];
-      }
-      
-      storage.orcamentos[index] = {
-        ...existing,
-        ...data,
-        id,
-        updated_date: now,
-        history: newHistory
-      };
-      return storage.orcamentos[index];
-    },
-    delete: async (id) => {
-      const index = storage.orcamentos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Orçamento não encontrado');
-      storage.orcamentos.splice(index, 1);
-      return { id };
-    }
+    create: (data) => orcamentosService.create(data),
+    update: (id, data) => orcamentosService.update(id, data),
+    delete: (id) => orcamentosService.delete(id)
   },
-  // ===== CONFIGURAÇÕES TÉCNICAS =====
-  // Configurações técnicas não são produtos comercializáveis
-  // São usadas apenas para definir características técnicas das tipologias
-  
+
   TipoVidroTecnico: {
     list: async (orderBy = 'ordem') => {
-      return sortData(storage.tiposVidroTecnicos, orderBy);
+      const list = await configTecnicasService.tiposVidro.list({ orderBy });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.tiposVidroTecnicos, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.tiposVidro.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `vidtec-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.tiposVidroTecnicos.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.tiposVidroTecnicos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de vidro técnico não encontrado');
-      storage.tiposVidroTecnicos[index] = {
-        ...storage.tiposVidroTecnicos[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.tiposVidroTecnicos[index];
-    },
-    delete: async (id) => {
-      const index = storage.tiposVidroTecnicos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de vidro técnico não encontrado');
-      storage.tiposVidroTecnicos.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.tiposVidro.create(data),
+    update: (id, data) => configTecnicasService.tiposVidro.update(id, data),
+    delete: (id) => configTecnicasService.tiposVidro.delete(id)
   },
-  
+
   PuxadorTecnico: {
     list: async (orderBy = 'nome') => {
-      return sortData(storage.puxadoresTecnicos, orderBy);
+      const list = await configTecnicasService.puxadores.list({ orderBy });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'nome') => {
-      const filtered = filterData(storage.puxadoresTecnicos, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.puxadores.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `puxtec-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.puxadoresTecnicos.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.puxadoresTecnicos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Puxador técnico não encontrado');
-      storage.puxadoresTecnicos[index] = {
-        ...storage.puxadoresTecnicos[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.puxadoresTecnicos[index];
-    },
-    delete: async (id) => {
-      const index = storage.puxadoresTecnicos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Puxador técnico não encontrado');
-      storage.puxadoresTecnicos.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.puxadores.create(data),
+    update: (id, data) => configTecnicasService.puxadores.update(id, data),
+    delete: (id) => configTecnicasService.puxadores.delete(id)
   },
-  
+
   FerragemTecnica: {
     list: async (orderBy = 'nome') => {
-      return sortData(storage.ferragensTecnicas, orderBy);
+      const list = await configTecnicasService.ferragens.list({ orderBy });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'nome') => {
-      const filtered = filterData(storage.ferragensTecnicas, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.ferragens.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `ferrtec-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.ferragensTecnicas.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.ferragensTecnicas.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Ferragem técnica não encontrada');
-      storage.ferragensTecnicas[index] = {
-        ...storage.ferragensTecnicas[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.ferragensTecnicas[index];
-    },
-    delete: async (id) => {
-      const index = storage.ferragensTecnicas.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Ferragem técnica não encontrada');
-      storage.ferragensTecnicas.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.ferragens.create(data),
+    update: (id, data) => configTecnicasService.ferragens.update(id, data),
+    delete: (id) => configTecnicasService.ferragens.delete(id)
   },
-  
-  // ===== TIPOS DE CONFIGURAÇÕES TÉCNICAS =====
-  // Define os tipos/categorias de configurações técnicas disponíveis
+
   TipoConfiguracaoTecnica: {
     list: async (orderBy = 'ordem') => {
-      return sortData(storage.tiposConfiguracaoTecnica, orderBy);
+      const list = await configTecnicasService.tiposConfiguracao.list({ orderBy });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.tiposConfiguracaoTecnica, filters);
-      return sortData(filtered, orderBy);
+      const list = await configTecnicasService.tiposConfiguracao.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `tct-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.tiposConfiguracaoTecnica.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.tiposConfiguracaoTecnica.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de configuração técnica não encontrado');
-      storage.tiposConfiguracaoTecnica[index] = {
-        ...storage.tiposConfiguracaoTecnica[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.tiposConfiguracaoTecnica[index];
-    },
-    delete: async (id) => {
-      const index = storage.tiposConfiguracaoTecnica.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Tipo de configuração técnica não encontrado');
-      // Também remove os itens relacionados
-      storage.itensConfiguracaoTecnica = storage.itensConfiguracaoTecnica.filter(
-        item => item.tipo_configuracao_id !== id
-      );
-      storage.tiposConfiguracaoTecnica.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.tiposConfiguracao.create(data),
+    update: (id, data) => configTecnicasService.tiposConfiguracao.update(id, data),
+    delete: (id) => configTecnicasService.tiposConfiguracao.delete(id)
   },
-  
-  // ===== ITENS DE CONFIGURAÇÕES TÉCNICAS =====
-  // Itens/elementos que pertencem a uma categoria de configuração técnica
+
   ItemConfiguracaoTecnica: {
     list: async (orderBy = 'nome') => {
-      return sortData(storage.itensConfiguracaoTecnica, orderBy);
+      const list = await configTecnicasService.itensConfiguracao.list({ orderBy });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'nome') => {
-      const filtered = filterData(storage.itensConfiguracaoTecnica, filters);
-      return sortData(filtered, orderBy);
+      const tipoConfiguracaoId = filters?.tipo_configuracao_id ?? filters?.tipoConfiguracaoId;
+      if (tipoConfiguracaoId != null) {
+        const list = await configTecnicasService.itensConfiguracao.list({ tipoConfiguracaoId, orderBy });
+        return sortData(filterData(ensureList(list), filters), orderBy);
+      }
+      const list = await configTecnicasService.itensConfiguracao.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `ict-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.itensConfiguracaoTecnica.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.itensConfiguracaoTecnica.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Item de configuração técnica não encontrado');
-      storage.itensConfiguracaoTecnica[index] = {
-        ...storage.itensConfiguracaoTecnica[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.itensConfiguracaoTecnica[index];
-    },
-    delete: async (id) => {
-      const index = storage.itensConfiguracaoTecnica.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Item de configuração técnica não encontrado');
-      storage.itensConfiguracaoTecnica.splice(index, 1);
-      return { id };
-    }
+    create: (data) => configTecnicasService.itensConfiguracao.create(data),
+    update: (id, data) => configTecnicasService.itensConfiguracao.update(id, data),
+    delete: (id) => configTecnicasService.itensConfiguracao.delete(id)
   },
-  
-  // ===== PRODUTOS COMERCIAIS =====
-  // Categorias de Produtos
+
   CategoriaProduto: {
     list: async (orderBy = 'ordem') => {
-      return sortData(storage.categoriasProduto, orderBy);
+      const list = await categoriasProdutoService.list();
+      return sortData(ensureList(list), orderBy);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.categoriasProduto, filters);
-      return sortData(filtered, orderBy);
+      const list = await categoriasProdutoService.list();
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `cat-prod-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.categoriasProduto.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.categoriasProduto.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Categoria de produto não encontrada');
-      storage.categoriasProduto[index] = {
-        ...storage.categoriasProduto[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.categoriasProduto[index];
-    },
-    delete: async (id) => {
-      const index = storage.categoriasProduto.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Categoria de produto não encontrada');
-      // Verificar se há produtos usando esta categoria
-      const produtosComCategoria = storage.produtos.filter(p => p.categoria_id === id);
-      if (produtosComCategoria.length > 0) {
-        throw new Error(`Não é possível excluir: existem ${produtosComCategoria.length} produto(s) usando esta categoria`);
-      }
-      storage.categoriasProduto.splice(index, 1);
-      return { id };
-    }
+    create: (data) => categoriasProdutoService.create(data),
+    update: (id, data) => categoriasProdutoService.update(id, data),
+    delete: (id) => categoriasProdutoService.delete(id)
   },
-  
-  // Produtos são itens comercializáveis que podem ser adicionados ao orçamento
+
   Produto: {
-    list: async (orderBy = 'ordem') => {
-      return sortData(storage.produtos, orderBy);
+    list: async (orderBy = 'ordem', limit) => {
+      const list = await produtosService.list({ orderBy, limit });
+      return ensureList(list);
     },
     filter: async (filters = {}, orderBy = 'ordem') => {
-      const filtered = filterData(storage.produtos, filters);
-      return sortData(filtered, orderBy);
+      const list = await produtosService.list({ orderBy });
+      return sortData(filterData(ensureList(list), filters), orderBy);
     },
-    create: async (data) => {
-      const newItem = {
-        ...data,
-        id: `prod-${Date.now()}`,
-        created_date: new Date().toISOString()
-      };
-      storage.produtos.push(newItem);
-      return newItem;
-    },
-    update: async (id, data) => {
-      const index = storage.produtos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Produto não encontrado');
-      storage.produtos[index] = {
-        ...storage.produtos[index],
-        ...data,
-        id,
-        updated_date: new Date().toISOString()
-      };
-      return storage.produtos[index];
-    },
-    delete: async (id) => {
-      const index = storage.produtos.findIndex(item => item.id === id);
-      if (index === -1) throw new Error('Produto não encontrado');
-      storage.produtos.splice(index, 1);
-      return { id };
-    }
+    create: (data) => produtosService.create(data),
+    update: (id, data) => produtosService.update(id, data),
+    delete: (id) => produtosService.delete(id)
   }
 };
 
-// Integration operations
 export const integrations = {
   Core: {
-    UploadFile: async ({ file }) => {
-      // Simula upload de arquivo - retorna URL temporária
-      return { file_url: URL.createObjectURL(file) };
-    }
+    SendEmail: integracoesService.sendEmail,
+    UploadFile: async ({ file }) => uploadService.upload(file)
   }
 };

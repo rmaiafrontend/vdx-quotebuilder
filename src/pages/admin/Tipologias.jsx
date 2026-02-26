@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import { entities, integrations } from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import {
   Plus,
-  Pencil,
-  Trash2,
-  Package,
   Image,
   X,
   Save,
@@ -14,7 +10,9 @@ import {
   Calculator,
   Info,
   Settings,
-  Palette
+  Palette,
+  Package,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +20,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -39,78 +36,48 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Checkbox
-} from "@/components/ui/checkbox";
-
-const FORM_INICIAL = {
-  nome: '',
-  descricao: '',
-  categoria_id: '',
-  imagens: [],
-  variaveis: [],
-  pecas: [],
-  acessorio_ids: [],
-  tipos_vidro_ids: [], // IDs dos tipos de vidro técnicos disponíveis para esta tipologia
-  ordem: 0,
-  ativo: true
-};
-
-const VARIAVEL_INICIAL = {
-  id: '',
-  nome: '',
-  label: '',
-  tipo: 'numerico',
-  unidade_padrao: 'cm',
-  permite_alterar_unidade: true,
-  opcoes: [],
-  ordem: 0
-};
-
-const PECA_INICIAL = {
-  id: '',
-  nome: '',
-  formula_largura: '',
-  formula_altura: '',
-  imagem_url: '', // URL da imagem ilustrativa da peça
-  configuracoes_tecnicas: [], // Array de configurações técnicas
-  ordem: 0
-};
-
-// Estrutura de uma configuração técnica
-const CONFIGURACAO_TECNICA_INICIAL = {
-  categoria: '', // 'puxador_tecnico', 'ferragem_tecnica', etc.
-  itens_ids: [], // IDs dos itens específicos disponíveis
-  obrigatorio: false
-};
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/components/ui/use-toast";
+import PageHeader from "@/components/admin/PageHeader";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
+import { validarFormulasTipologia } from "@/components/utils/calculoUtils";
+import { FORM_INICIAL, VARIAVEL_INICIAL, PECA_INICIAL } from "./tipologias/constants";
+import { useTipologiaForm } from "./tipologias/hooks/useTipologiaForm";
+import TipologiaList from "./tipologias/TipologiaList";
 
 export default function Tipologias() {
   const queryClient = useQueryClient();
   const [modalAberto, setModalAberto] = useState(false);
   const [tipologiaEditando, setTipologiaEditando] = useState(null);
-  const [formData, setFormData] = useState(FORM_INICIAL);
   const [tipologiaExcluir, setTipologiaExcluir] = useState(null);
+
+  const {
+    formData,
+    setFormData,
+    resetForm,
+    addImagem,
+    setPecaImagem,
+    adicionarVariavel,
+    atualizarVariavel,
+    removerVariavel,
+    adicionarPeca,
+    atualizarPeca,
+    removerPeca,
+    adicionarConfiguracaoTecnica,
+    removerConfiguracaoTecnica,
+    atualizarConfiguracaoTecnica,
+    toggleItemConfiguracao,
+    removerImagem,
+    toggleAcessorio,
+    toggleTipoVidro,
+    selecionarCategoria,
+  } = useTipologiaForm(FORM_INICIAL);
 
   const { data: tipologias = [], isLoading } = useQuery({
     queryKey: ['tipologias'],
@@ -214,18 +181,31 @@ export default function Tipologias() {
       descricao: tipologia.descricao || '',
       categoria_id: tipologia.categoria_id || (tipologia.categoria_ids && tipologia.categoria_ids.length > 0 ? tipologia.categoria_ids[0] : ''),
       imagens: tipologia.imagens || [],
-      variaveis: tipologia.variaveis || [],
-      pecas: (tipologia.pecas || []).map(peca => ({
-        ...peca,
-        // Migrar tem_puxador antigo para configuracoes_tecnicas
-        configuracoes_tecnicas: peca.configuracoes_tecnicas || (
-          peca.tem_puxador ? [{
-            categoria: 'puxador_tecnico',
-            itens_ids: [], // Todos os puxadores disponíveis
-            obrigatorio: true
-          }] : []
-        )
+      variaveis: (tipologia.variaveis || []).map((v, i) => ({
+        ...VARIAVEL_INICIAL,
+        ...v,
+        id: v.id || `var_${i}_${Date.now()}`,
       })),
+      pecas: (tipologia.pecas || []).map((peca, i) => {
+        const pecaBackend = { ...peca };
+        // Garantir nomes de campos (backend pode enviar camelCase ou snake_case)
+        if (pecaBackend.formula_largura == null && pecaBackend.formulaLargura != null)
+          pecaBackend.formula_largura = pecaBackend.formulaLargura;
+        if (pecaBackend.formula_altura == null && pecaBackend.formulaAltura != null)
+          pecaBackend.formula_altura = pecaBackend.formulaAltura;
+        return {
+          ...PECA_INICIAL,
+          ...pecaBackend,
+          id: pecaBackend.id || `peca_${i}_${Date.now()}`,
+          configuracoes_tecnicas: pecaBackend.configuracoes_tecnicas || (
+            pecaBackend.tem_puxador ? [{
+              categoria: 'puxador_tecnico',
+              itens_ids: [],
+              obrigatorio: true
+            }] : []
+          ),
+        };
+      }),
       acessorio_ids: tipologia.acessorio_ids || [],
       tipos_vidro_ids: tipologia.tipos_vidro_ids || [],
       ordem: tipologia.ordem || 0,
@@ -237,10 +217,26 @@ export default function Tipologias() {
   const fecharModal = () => {
     setModalAberto(false);
     setTipologiaEditando(null);
-    setFormData(FORM_INICIAL);
+    resetForm(FORM_INICIAL);
   };
 
   const salvar = () => {
+    const { valido, erros, avisos } = validarFormulasTipologia(formData);
+    if (!valido) {
+      toast({
+        title: "Erro nas fórmulas",
+        description: erros.join("\n"),
+        variant: "destructive"
+      });
+      return;
+    }
+    if (avisos.length > 0) {
+      toast({
+        title: "Aviso nas fórmulas",
+        description: avisos.join("\n"),
+        variant: "default"
+      });
+    }
     if (tipologiaEditando) {
       updateMutation.mutate({ id: tipologiaEditando.id, data: formData });
     } else {
@@ -251,286 +247,51 @@ export default function Tipologias() {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     const { file_url } = await integrations.Core.UploadFile({ file });
-    setFormData({ ...formData, imagens: [...formData.imagens, file_url] });
-  };
-
-  const removerImagem = (index) => {
-    setFormData({
-      ...formData,
-      imagens: formData.imagens.filter((_, i) => i !== index)
-    });
+    addImagem(file_url);
   };
 
   const handlePecaImagemUpload = async (e, pecaIndex) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     const { file_url } = await integrations.Core.UploadFile({ file });
-    const novasPecas = [...formData.pecas];
-    novasPecas[pecaIndex] = { ...novasPecas[pecaIndex], imagem_url: file_url };
-    setFormData({ ...formData, pecas: novasPecas });
+    setPecaImagem(pecaIndex, file_url);
   };
 
   const removerPecaImagem = (pecaIndex) => {
-    const novasPecas = [...formData.pecas];
-    novasPecas[pecaIndex] = { ...novasPecas[pecaIndex], imagem_url: '' };
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  // Variáveis
-  const adicionarVariavel = () => {
-    const novaVariavel = {
-      ...VARIAVEL_INICIAL,
-      id: `var_${Date.now()}`,
-      ordem: formData.variaveis.length
-    };
-    setFormData({
-      ...formData,
-      variaveis: [...formData.variaveis, novaVariavel]
-    });
-  };
-
-  const atualizarVariavel = (index, campo, valor) => {
-    const novasVars = [...formData.variaveis];
-    novasVars[index] = { ...novasVars[index], [campo]: valor };
-    setFormData({ ...formData, variaveis: novasVars });
-  };
-
-  const removerVariavel = (index) => {
-    setFormData({
-      ...formData,
-      variaveis: formData.variaveis.filter((_, i) => i !== index)
-    });
-  };
-
-  // Peças
-  const adicionarPeca = () => {
-    const novaPeca = {
-      ...PECA_INICIAL,
-      id: `peca_${Date.now()}`,
-      ordem: formData.pecas.length
-    };
-    setFormData({
-      ...formData,
-      pecas: [...formData.pecas, novaPeca]
-    });
-  };
-
-  const atualizarPeca = (index, campo, valor) => {
-    const novasPecas = [...formData.pecas];
-    novasPecas[index] = { ...novasPecas[index], [campo]: valor };
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  const removerPeca = (index) => {
-    setFormData({
-      ...formData,
-      pecas: formData.pecas.filter((_, i) => i !== index)
-    });
-  };
-
-  // Configurações técnicas das peças
-  const adicionarConfiguracaoTecnica = (pecaIndex) => {
-    const novasPecas = [...formData.pecas];
-    const configuracao = {
-      ...CONFIGURACAO_TECNICA_INICIAL,
-      id: `config_${Date.now()}`
-    };
-    novasPecas[pecaIndex].configuracoes_tecnicas = [
-      ...(novasPecas[pecaIndex].configuracoes_tecnicas || []),
-      configuracao
-    ];
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  const removerConfiguracaoTecnica = (pecaIndex, configIndex) => {
-    const novasPecas = [...formData.pecas];
-    novasPecas[pecaIndex].configuracoes_tecnicas = 
-      novasPecas[pecaIndex].configuracoes_tecnicas.filter((_, i) => i !== configIndex);
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  const atualizarConfiguracaoTecnica = (pecaIndex, configIndex, campo, valor) => {
-    const novasPecas = [...formData.pecas];
-    novasPecas[pecaIndex].configuracoes_tecnicas[configIndex] = {
-      ...novasPecas[pecaIndex].configuracoes_tecnicas[configIndex],
-      [campo]: valor
-    };
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  const toggleItemConfiguracao = (pecaIndex, configIndex, itemId) => {
-    const novasPecas = [...formData.pecas];
-    const config = novasPecas[pecaIndex].configuracoes_tecnicas[configIndex];
-    const itensAtuais = config.itens_ids || [];
-    
-    if (itensAtuais.includes(itemId)) {
-      config.itens_ids = itensAtuais.filter(id => id !== itemId);
-    } else {
-      config.itens_ids = [...itensAtuais, itemId];
-    }
-    
-    setFormData({ ...formData, pecas: novasPecas });
-  };
-
-  const selecionarCategoria = (catId) => {
-    setFormData({
-      ...formData,
-      categoria_id: catId || ''
-    });
-  };
-
-  const toggleAcessorio = (acessId) => {
-    const atual = formData.acessorio_ids || [];
-    if (atual.includes(acessId)) {
-      setFormData({
-        ...formData,
-        acessorio_ids: atual.filter(id => id !== acessId)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        acessorio_ids: [...atual, acessId]
-      });
-    }
-  };
-
-  const toggleTipoVidro = (vidroId) => {
-    const atual = formData.tipos_vidro_ids || [];
-    if (atual.includes(vidroId)) {
-      setFormData({
-        ...formData,
-        tipos_vidro_ids: atual.filter(id => id !== vidroId)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        tipos_vidro_ids: [...atual, vidroId]
-      });
-    }
+    setPecaImagem(pecaIndex, "");
   };
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Tipologias</h1>
-          <p className="text-slate-500 mt-1">Configure os modelos de produtos com fórmulas de cálculo</p>
-        </div>
-        <Button onClick={abrirNovaTipologia} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Tipologia
-        </Button>
-      </div>
-
-      {/* Lista */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
-        </div>
-      ) : tipologias.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
-          <Package className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-          <p className="text-slate-500">Nenhuma tipologia cadastrada</p>
-          <Button onClick={abrirNovaTipologia} className="mt-4 bg-blue-600 hover:bg-blue-700">
-            Criar primeira tipologia
+      <PageHeader
+        title="Tipologias"
+        description="Configure os modelos de produtos com fórmulas de cálculo"
+        action={
+          <Button onClick={abrirNovaTipologia} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Tipologia
           </Button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {tipologias.map((tipologia, i) => (
-            <motion.div
-              key={tipologia.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className={`group flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer ${!tipologia.ativo ? 'opacity-60' : ''}`}
-              onClick={() => abrirEdicao(tipologia)}
-            >
-              {/* Imagem */}
-              <div className="flex-shrink-0">
-                {tipologia.imagens?.[0] ? (
-                  <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden">
-                    <img 
-                      src={tipologia.imagens[0]} 
-                      alt={tipologia.nome}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-8 h-8 text-slate-300" />
-                  </div>
-                )}
-              </div>
-              
-              {/* Conteúdo */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900 truncate">{tipologia.nome}</h3>
-                      {!tipologia.ativo && (
-                        <Badge variant="secondary" className="text-xs">Inativa</Badge>
-                      )}
-                    </div>
-                    {tipologia.descricao && (
-                      <p className="text-sm text-slate-500 truncate">{tipologia.descricao}</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 text-xs">
-                    {tipologia.variaveis?.length || 0} variáveis
-                  </Badge>
-                  <Badge variant="secondary" className="bg-green-50 text-green-700 text-xs">
-                    {tipologia.pecas?.length || 0} peças
-                  </Badge>
-                  {tipologia.acessorio_ids?.length > 0 && (
-                    <Badge variant="secondary" className="bg-purple-50 text-purple-700 text-xs">
-                      {tipologia.acessorio_ids.length} acessórios
-                    </Badge>
-                  )}
-                  {tipologia.tipos_vidro_ids?.length > 0 && (
-                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 text-xs">
-                      {tipologia.tipos_vidro_ids.length} tipos de vidro
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              {/* Ações */}
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => abrirEdicao(tipologia)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => setTipologiaExcluir(tipologia)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+        }
+      />
+
+      <TipologiaList
+        tipologias={tipologias}
+        isLoading={isLoading}
+        onNew={abrirNovaTipologia}
+        onEdit={abrirEdicao}
+        onDelete={setTipologiaExcluir}
+      />
 
       {/* Modal de Edição */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="max-w-5xl max-h-[95vh] flex flex-col p-0">
+        <DialogContent className="max-w-5xl max-h-[95vh] flex flex-col p-0 rounded-2xl">
           <DialogHeader className="px-6 pt-6 pb-4 border-b bg-white">
-            <DialogTitle className="text-2xl font-bold">
+            <DialogTitle className="text-xl font-bold tracking-tight">
               {tipologiaEditando ? 'Editar Tipologia' : 'Nova Tipologia'}
             </DialogTitle>
-            <p className="text-sm text-slate-500 mt-1">
-              Configure todas as informações da tipologia de forma organizada
+            <p className="text-sm text-slate-500 mt-0.5">
+              Configure todas as informações da tipologia
             </p>
           </DialogHeader>
           
@@ -753,10 +514,15 @@ export default function Tipologias() {
                             </div>
                           </div>
                           <Button 
+                            type="button"
                             variant="ghost" 
                             size="icon" 
                             className="h-9 w-9 text-red-600 hover:bg-red-50"
-                            onClick={() => removerVariavel(index)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              removerVariavel(index);
+                            }}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -1304,18 +1070,18 @@ export default function Tipologias() {
             </div>
           </Tabs>
           
-          <DialogFooter className="px-6 py-5 border-t bg-white">
+          <DialogFooter className="px-6 py-4 border-t bg-white/95 backdrop-blur-sm">
             <Button 
               variant="outline" 
               onClick={fecharModal}
-              className="h-11 px-6"
+              className="h-10 px-5 rounded-xl"
             >
               Cancelar
             </Button>
             <Button 
               onClick={salvar} 
               disabled={!formData.nome || createMutation.isPending || updateMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 h-11 px-6 font-semibold"
+              className="bg-blue-600 hover:bg-blue-700 h-10 px-5 rounded-xl font-semibold shadow-md shadow-blue-500/20"
             >
               <Save className="w-4 h-4 mr-2" />
               Salvar Tipologia
@@ -1325,26 +1091,14 @@ export default function Tipologias() {
       </Dialog>
 
       {/* Confirmação de Exclusão */}
-      <AlertDialog open={!!tipologiaExcluir} onOpenChange={() => setTipologiaExcluir(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir tipologia?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir a tipologia "{tipologiaExcluir?.nome}"? 
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMutation.mutate(tipologiaExcluir?.id)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!tipologiaExcluir}
+        onOpenChange={() => setTipologiaExcluir(null)}
+        title="Excluir tipologia?"
+        itemName={tipologiaExcluir?.nome}
+        onConfirm={() => deleteMutation.mutate(tipologiaExcluir?.id)}
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

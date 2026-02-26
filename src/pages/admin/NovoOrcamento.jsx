@@ -23,14 +23,8 @@ import TipologiaCard from "@/components/orcamento/TipologiaCard";
 import InputComUnidade from "@/components/orcamento/InputComUnidade";
 import PecaConferencia from "@/components/orcamento/PecaConferencia";
 import { calcularPecas, calcularPreco, formatarMedida } from "@/components/utils/calculoUtils";
-
-const ETAPAS = [
-  { id: 1, nome: "Categoria", icone: Layers },
-  { id: 2, nome: "Tipologia + Variáveis", icone: Calculator },
-  { id: 3, nome: "Conferência", icone: Check },
-  { id: 4, nome: "Resumo/Preço", icone: CreditCard },
-  { id: 5, nome: "Pagamento", icone: CreditCard }
-];
+import { ETAPAS_ADMIN } from "@/constants/orcamento";
+import { toast } from "@/components/ui/use-toast";
 
 export default function NovoOrcamento() {
   const navigate = useNavigate();
@@ -138,8 +132,17 @@ export default function NovoOrcamento() {
   // Calcular peças
   const executarCalculo = () => {
     if (!tipologiaSelecionada) return;
-    
+
     const resultado = calcularPecas(tipologiaSelecionada, variaveisPreenchidas);
+    if (resultado.erros?.length > 0) {
+      const mensagens = resultado.erros.map((e) => e.mensagem).join("\n");
+      toast({
+        title: "Erro no cálculo das peças",
+        description: mensagens,
+        variant: "destructive"
+      });
+      return;
+    }
     setPecasCalculadas(resultado.pecas);
     setTotais({
       areaTotalRealM2: resultado.areaTotalRealM2,
@@ -207,7 +210,7 @@ export default function NovoOrcamento() {
   const podeAvancar = () => {
     switch (etapaAtual) {
       case 1: return !!categoriaSelecionada;
-      case 2: return tipologiaSelecionada && variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null) && !!tipoVidroSelecionado;
+      case 2: return tipologiaSelecionada && variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null && Number.isFinite(Number(v.valor))) && !!tipoVidroSelecionado;
       case 3: return pecasCalculadas.every(p => p.conferido);
       case 4: return !!tipoVidroSelecionado;
       case 5: return true;
@@ -235,7 +238,7 @@ export default function NovoOrcamento() {
           
           {/* Progress Steps */}
           <div className="flex items-center justify-between">
-            {ETAPAS.map((etapa, i) => (
+            {ETAPAS_ADMIN.map((etapa, i) => (
               <React.Fragment key={etapa.id}>
                 <div 
                   className={`flex items-center gap-2 ${
@@ -257,7 +260,7 @@ export default function NovoOrcamento() {
                   </div>
                   <span className="hidden sm:block text-sm font-medium">{etapa.nome}</span>
                 </div>
-                {i < ETAPAS.length - 1 && (
+                {i < ETAPAS_ADMIN.length - 1 && (
                   <div className={`flex-1 h-0.5 mx-2 ${
                     etapaAtual > etapa.id ? 'bg-blue-600' : 'bg-slate-200'
                   }`} />
@@ -430,7 +433,7 @@ export default function NovoOrcamento() {
                     </Card>
 
                     {/* Seção Inferior: Seleção de Cor com Preço Final */}
-                    {variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null) && (
+                    {variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null && Number.isFinite(Number(v.valor))) && (
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-lg">Tipo de Vidro</CardTitle>
@@ -440,10 +443,9 @@ export default function NovoOrcamento() {
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {tiposVidroDisponiveis.map((tipo) => {
-                            // Calcula preço estimado baseado nas variáveis atuais
                             const resultadoTemp = calcularPecas(tipologiaSelecionada, variaveisPreenchidas);
-                            const precoEstimado = calcularPreco(resultadoTemp.areaTotalCobrancaM2, tipo.preco_m2 || 0);
-                            
+                            const temErro = resultadoTemp.erros?.length > 0;
+                            const precoEstimado = temErro ? NaN : calcularPreco(resultadoTemp.areaTotalCobrancaM2, tipo.preco_m2 || 0);
                             return (
                               <div
                                 key={tipo.id}
@@ -466,10 +468,10 @@ export default function NovoOrcamento() {
                                 </div>
                                 <div className="text-right">
                                   <p className="text-lg font-bold text-slate-900">
-                                    R$ {precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    {temErro ? "—" : `R$ ${precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                   </p>
                                   <p className="text-xs text-slate-500">
-                                    {resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²
+                                    {temErro ? "—" : `${resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²`}
                                   </p>
                                 </div>
                               </div>

@@ -92,134 +92,131 @@ export default function Home() {
   const primaryColor = company?.primary_color || localStorage.getItem('company_primary_color') || '#1e88e5';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <header 
-        className="px-5 py-3.5 flex items-center justify-between"
-        style={{ backgroundColor: primaryColor }}
+      <header
+        className="px-5 py-4 flex items-center justify-between shadow-md"
+        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="w-9 h-9 rounded-lg bg-white p-1 object-cover" />
+            <img src={company.logo_url} alt={company.name} className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-sm" />
           ) : (
-            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
-              <span className="font-bold text-lg" style={{ color: primaryColor }}>
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/30">
+              <span className="font-bold text-lg text-white">
                 {company?.name?.charAt(0) || 'V'}
               </span>
             </div>
           )}
-          <h1 className="text-white font-semibold">
+          <h1 className="text-white font-semibold text-lg tracking-tight">
             {company?.name || 'Orçamentos'}
           </h1>
         </div>
-        <div className="flex items-center gap-1">
-          <button 
-            className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
+        <div className="flex items-center gap-0.5">
+          <button
+            className="relative p-2.5 hover:bg-white/15 rounded-xl transition-colors"
             onClick={() => navigate('/admin/dashboard')}
           >
-            <Bell className="w-5 h-5 text-white" />
-            {(openQuotesCount > 0) && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white/20"></span>
+            <Bell className="w-5 h-5 text-white/90" />
+            {openQuotesCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-400 rounded-full ring-2 ring-white/30" />
             )}
           </button>
-          <button 
+          <button
             onClick={handleLogout}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2.5 hover:bg-white/15 rounded-xl transition-colors"
           >
-            <LogOut className="w-5 h-5 text-white" />
+            <LogOut className="w-5 h-5 text-white/90" />
           </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="px-4 py-5 max-w-2xl mx-auto">
+      <div className="px-4 py-6 max-w-2xl mx-auto">
         {/* Greeting */}
-        <div className="mb-5">
-          <p className="text-slate-500 text-sm mb-0.5">{getGreeting()}</p>
-          <h2 className="text-xl font-bold text-slate-900">
-            {customer?.name?.split(' ')[0] || 'Bem-vindo'} 👋
+        <div className="mb-6">
+          <p className="text-slate-500 text-sm">{getGreeting()}</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">
+            {customer?.name?.split(' ')[0] || 'Bem-vindo'}
           </h2>
         </div>
 
-        {/* New Quote Button */}
-        <button 
-          className="w-full mb-5 p-4 rounded-2xl text-left transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-          style={{ backgroundColor: primaryColor }}
+        {/* CTA - Novo Orçamento */}
+        <button
+          className="w-full mb-6 p-5 rounded-2xl text-left transition-all hover:brightness-110 active:scale-[0.98] shadow-lg ring-1 ring-black/5"
+          style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
           onClick={() => {
             if (quoteTypes.length === 0) {
               alert('Nenhum tipo de orçamento disponível no momento.');
             } else {
-              // Redirecionar para OrcamentoPublico quando houver tipos de orçamento
               navigate('/orcamento');
             }
           }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <Plus className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 ring-1 ring-white/20">
+              <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="text-white font-semibold text-base">Novo Orçamento</h3>
-              <p className="text-white/80 text-sm">Solicitar cotação</p>
+              <p className="text-white/70 text-sm mt-0.5">Solicitar nova cotação</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-white/60" />
+            <ChevronRight className="w-5 h-5 text-white/50 shrink-0" />
           </div>
         </button>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          {/* Open Quotes */}
-          <button 
-            className="p-4 rounded-xl bg-white border border-slate-100 text-left transition-all hover:shadow-md active:scale-[0.98]"
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <button
+            className="p-4 rounded-2xl bg-white border border-slate-200/80 text-left transition-all hover:shadow-md hover:border-slate-300/60 active:scale-[0.98] shadow-sm"
             onClick={() => navigate('/em-aberto')}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-blue-600" />
               </div>
               {openQuotesCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                <span className="min-w-[24px] h-6 px-2 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">
                   {openQuotesCount}
                 </span>
               )}
             </div>
             <h3 className="text-slate-900 font-semibold text-sm">Em Aberto</h3>
-            <p className="text-slate-400 text-xs">Acompanhar</p>
+            <p className="text-slate-500 text-xs mt-0.5">Acompanhar pedidos</p>
           </button>
 
-          {/* History */}
-          <button 
-            className="p-4 rounded-xl bg-white border border-slate-100 text-left transition-all hover:shadow-md active:scale-[0.98]"
+          <button
+            className="p-4 rounded-2xl bg-white border border-slate-200/80 text-left transition-all hover:shadow-md hover:border-slate-300/60 active:scale-[0.98] shadow-sm"
             onClick={() => navigate('/historico')}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-emerald-600" />
               </div>
               {completedQuotesCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                <span className="min-w-[24px] h-6 px-2 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
                   {completedQuotesCount}
                 </span>
               )}
             </div>
             <h3 className="text-slate-900 font-semibold text-sm">Histórico</h3>
-            <p className="text-slate-400 text-xs">Finalizados</p>
+            <p className="text-slate-500 text-xs mt-0.5">Finalizados</p>
           </button>
         </div>
 
         {/* Help Card */}
-        <button 
-          className="w-full p-4 rounded-xl bg-amber-50 border border-amber-100 text-left transition-all hover:bg-amber-100/50 active:scale-[0.98]"
+        <button
+          className="w-full p-4 rounded-2xl bg-white border border-slate-200/80 text-left transition-all hover:shadow-md hover:border-slate-300/60 active:scale-[0.98] shadow-sm"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
               <MessageCircle className="w-5 h-5 text-amber-600" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h3 className="text-slate-900 font-semibold text-sm">Precisa de ajuda?</h3>
-              <p className="text-slate-500 text-xs">Fale conosco no WhatsApp</p>
+              <p className="text-slate-500 text-xs mt-0.5">Fale conosco no WhatsApp</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-amber-400" />
+            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
           </div>
         </button>
       </div>

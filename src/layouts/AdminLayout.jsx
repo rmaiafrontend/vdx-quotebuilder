@@ -9,7 +9,7 @@ import {
   ShoppingCart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, VisuallyHidden } from "@/components/ui/sheet";
 
 /**
  * Layout para rotas privadas (admin/backoffice)
@@ -31,47 +31,62 @@ export default function AdminLayout({ children }) {
   const currentPath = location.pathname;
 
   const NavContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="p-6 border-b border-slate-100">
+    <div className="flex flex-col h-full bg-gradient-to-b from-white to-slate-50/80">
+      {/* Header com logo */}
+      <div className="shrink-0 px-5 pt-6 pb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-            <span className="text-white font-bold text-lg">V</span>
+          <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md shadow-blue-500/25 ring-2 ring-white/50">
+            <span className="text-white font-bold text-lg tracking-tight">V</span>
           </div>
-          <div>
-            <h1 className="font-bold text-xl text-slate-900 tracking-tight">VDX</h1>
+          <div className="min-w-0">
+            <h1 className="font-semibold text-lg text-slate-900 tracking-tight truncate">VDX</h1>
             <p className="text-xs text-slate-500 font-medium">Vidraçaria Digital</p>
           </div>
         </div>
       </div>
-      
-      <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = currentPath === item.page || 
-            (item.page === '/admin/dashboard' && currentPath === '/admin');
-          return (
-            <Link
-              key={item.page}
-              to={item.page}
-              onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive 
-                  ? "bg-blue-50 text-blue-700" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <item.icon className={`w-5 h-5 transition-colors ${
-                isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
-              }`} />
-              <span className="font-medium">{item.name}</span>
-            </Link>
-          );
-        })}
+
+      {/* Navegação */}
+      <nav className="flex-1 overflow-y-auto px-3 py-2">
+        <ul className="space-y-0.5">
+          {menuItems.map((item) => {
+            const isActive = currentPath === item.page ||
+              (item.page === '/admin/dashboard' && currentPath === '/admin');
+            return (
+              <li key={item.page}>
+                <Link
+                  to={item.page}
+                  onClick={() => setOpen(false)}
+                  className={`
+                    group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium
+                    transition-all duration-200 ease-out
+                    relative
+                    ${isActive
+                      ? "bg-blue-500/10 text-blue-700 shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900"
+                    }
+                  `}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" aria-hidden />
+                  )}
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                    isActive ? "bg-blue-500/15 text-blue-600" : "bg-slate-100/80 text-slate-500 group-hover:bg-slate-200/80"
+                  }`}>
+                    <item.icon className="h-4 w-4" strokeWidth={2.25} />
+                  </span>
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
-      
-      <div className="p-4 border-t border-slate-100">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4">
-          <p className="text-sm text-slate-600 font-medium">Precisa de ajuda?</p>
-          <p className="text-xs text-slate-500 mt-1">Entre em contato com suporte</p>
+
+      {/* Footer / CTA */}
+      <div className="shrink-0 p-3 border-t border-slate-200/60 bg-white/50">
+        <div className="rounded-xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-blue-50/50 p-3.5 shadow-sm">
+          <p className="text-sm font-medium text-slate-700">Precisa de ajuda?</p>
+          <p className="text-xs text-slate-500 mt-0.5">Entre em contato com o suporte</p>
         </div>
       </div>
     </div>
@@ -80,19 +95,19 @@ export default function AdminLayout({ children }) {
   return (
     <div className="min-h-screen bg-slate-50/50">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col overflow-y-auto bg-white border-r border-slate-200/80">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-[280px] lg:flex-col">
+        <div className="flex grow flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-[2px_0_24px_-8px_rgba(0,0,0,0.08)]">
           <NavContent />
         </div>
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200/80 shadow-sm">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-sm border-b border-slate-200/80 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">V</span>
+          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 ring-2 ring-white/50">
+            <span className="text-white font-bold text-sm">V</span>
           </div>
-          <span className="font-bold text-slate-900">VDX</span>
+          <span className="font-semibold text-slate-900">VDX</span>
         </div>
         
         <Sheet open={open} onOpenChange={setOpen}>
@@ -101,14 +116,17 @@ export default function AdminLayout({ children }) {
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="w-[280px] max-w-[85vw] p-0">
+            <VisuallyHidden>
+              <SheetTitle>Menu de navegação</SheetTitle>
+            </VisuallyHidden>
             <NavContent />
           </SheetContent>
         </Sheet>
       </header>
 
       {/* Main Content */}
-      <main className="lg:pl-72">
+      <main className="lg:pl-[280px]">
         <div className="min-h-screen p-6">
           {children}
         </div>

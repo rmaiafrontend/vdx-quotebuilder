@@ -2,16 +2,7 @@ import React, { useState } from "react";
 import { entities, integrations } from "@/api/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  LayoutGrid,
-  GripVertical,
-  Save,
-  X,
-  Image
-} from "lucide-react";
+import { Plus, Pencil, Trash2, LayoutGrid, GripVertical, Save, X, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,185 +17,163 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import PageHeader from "@/components/admin/PageHeader";
+import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
+import { useCrudModal } from "@/hooks/useCrudModal";
 
 const FORM_INICIAL = {
-  nome: '',
-  descricao: '',
-  icone: '',
-  imagem_url: '',
+  nome: "",
+  descricao: "",
+  icone: "",
+  imagem_url: "",
   ordem: 0,
-  ativo: true
+  ativo: true,
 };
 
 export default function Categorias() {
   const queryClient = useQueryClient();
-  const [modalAberto, setModalAberto] = useState(false);
-  const [categoriaEditando, setCategoriaEditando] = useState(null);
-  const [formData, setFormData] = useState(FORM_INICIAL);
   const [categoriaExcluir, setCategoriaExcluir] = useState(null);
+  const crud = useCrudModal(FORM_INICIAL);
+  const { modalOpen, setModalOpen, editingItem, formState, setFormState, openNew, openEdit, close } = crud;
 
   const { data: categorias = [], isLoading } = useQuery({
-    queryKey: ['categorias'],
-    queryFn: () => entities.Categoria.list('ordem')
+    queryKey: ["categorias"],
+    queryFn: () => entities.Categoria.list("ordem"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data) => entities.Categoria.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['categorias']);
-      fecharModal();
-    }
+      queryClient.invalidateQueries(["categorias"]);
+      close();
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => entities.Categoria.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['categorias']);
-      fecharModal();
-    }
+      queryClient.invalidateQueries(["categorias"]);
+      close();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => entities.Categoria.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['categorias']);
+      queryClient.invalidateQueries(["categorias"]);
       setCategoriaExcluir(null);
-    }
+    },
   });
 
-  const abrirNovaCategoria = () => {
-    setCategoriaEditando(null);
-    setFormData({ ...FORM_INICIAL, ordem: categorias.length });
-    setModalAberto(true);
-  };
-
-  const abrirEdicao = (categoria) => {
-    setCategoriaEditando(categoria);
-    setFormData({
-      nome: categoria.nome || '',
-      descricao: categoria.descricao || '',
-      icone: categoria.icone || '',
-      imagem_url: categoria.imagem_url || '',
-      ordem: categoria.ordem || 0,
-      ativo: categoria.ativo !== false
-    });
-    setModalAberto(true);
-  };
-
-  const fecharModal = () => {
-    setModalAberto(false);
-    setCategoriaEditando(null);
-    setFormData(FORM_INICIAL);
-  };
+  const abrirNovaCategoria = () => openNew({ ordem: categorias.length });
+  const abrirEdicao = (categoria) =>
+    openEdit(categoria, (c) => ({
+      nome: c.nome || "",
+      descricao: c.descricao || "",
+      icone: c.icone || "",
+      imagem_url: c.imagem_url || "",
+      ordem: c.ordem || 0,
+      ativo: c.ativo !== false,
+    }));
 
   const salvar = () => {
-    if (categoriaEditando) {
-      updateMutation.mutate({ id: categoriaEditando.id, data: formData });
+    if (editingItem) {
+      updateMutation.mutate({ id: editingItem.id, data: formState });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(formState);
     }
   };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     const { file_url } = await integrations.Core.UploadFile({ file });
-    setFormData({ ...formData, imagem_url: file_url });
+    setFormState((prev) => ({ ...prev, imagem_url: file_url }));
   };
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Categorias</h1>
-          <p className="text-slate-500 mt-1">Organize suas tipologias em categorias</p>
-        </div>
-        <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Categoria
-        </Button>
-      </div>
+      <PageHeader
+        title="Categorias"
+        description="Organize suas tipologias em categorias"
+        action={
+          <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Categoria
+          </Button>
+        }
+      />
 
-      {/* Lista */}
       {isLoading ? (
-        <div className="space-y-4">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
         </div>
       ) : categorias.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <LayoutGrid className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500">Nenhuma categoria cadastrada</p>
-            <Button onClick={abrirNovaCategoria} className="mt-4 bg-blue-600 hover:bg-blue-700">
-              Criar primeira categoria
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="p-10 text-center bg-white rounded-2xl border border-dashed border-slate-200 shadow-sm">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+            <LayoutGrid className="w-7 h-7 text-slate-400" />
+          </div>
+          <h3 className="font-semibold text-slate-700 mb-1">Nenhuma categoria</h3>
+          <p className="text-sm text-slate-500 mb-5">Crie a primeira para organizar suas tipologias</p>
+          <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20">
+            <Plus className="w-4 h-4 mr-2" />
+            Criar categoria
+          </Button>
+        </div>
       ) : (
         <div className="space-y-3">
           {categorias.map((categoria, i) => (
             <motion.div
               key={categoria.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04, duration: 0.3 }}
             >
-              <Card className={`${!categoria.ativo ? 'opacity-60' : ''}`}>
+              <Card className={`rounded-2xl border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:border-slate-300/60 transition-all duration-200 overflow-hidden ${!categoria.ativo ? "opacity-50" : ""}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
-                    <div className="text-slate-300 cursor-move">
+                    <div className="text-slate-300 cursor-move hover:text-slate-400 transition-colors">
                       <GripVertical className="w-5 h-5" />
                     </div>
-                    
                     {categoria.imagem_url ? (
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
-                        <img 
-                          src={categoria.imagem_url} 
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 ring-1 ring-slate-200/80">
+                        <img
+                          src={categoria.imagem_url}
                           alt={categoria.nome}
                           className="w-full h-full object-cover"
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl font-bold text-blue-600">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center shrink-0 ring-1 ring-blue-200/50">
+                        <span className="text-xl font-bold text-blue-600">
                           {categoria.nome?.charAt(0)}
                         </span>
                       </div>
                     )}
-                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">{categoria.nome}</h3>
+                        <h3 className="font-semibold text-slate-900 text-sm">{categoria.nome}</h3>
                         {!categoria.ativo && (
-                          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Inativa</span>
+                          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">
+                            Inativa
+                          </span>
                         )}
                       </div>
                       {categoria.descricao && (
-                        <p className="text-sm text-slate-500 mt-1 truncate">{categoria.descricao}</p>
+                        <p className="text-sm text-slate-500 mt-0.5 truncate">{categoria.descricao}</p>
                       )}
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => abrirEdicao(categoria)}>
-                        <Pencil className="w-4 h-4" />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="rounded-lg hover:bg-slate-100" onClick={() => abrirEdicao(categoria)}>
+                        <Pencil className="w-4 h-4 text-slate-500" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setCategoriaExcluir(categoria)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -217,51 +186,45 @@ export default function Categorias() {
         </div>
       )}
 
-      {/* Modal de Edição */}
-      <Dialog open={modalAberto} onOpenChange={setModalAberto}>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {categoriaEditando ? 'Editar Categoria' : 'Nova Categoria'}
-            </DialogTitle>
+            <DialogTitle>{editingItem ? "Editar Categoria" : "Nova Categoria"}</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4 py-4">
             <div>
               <Label>Nome</Label>
               <Input
-                value={formData.nome}
-                onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                value={formState.nome}
+                onChange={(e) => setFormState((p) => ({ ...p, nome: e.target.value }))}
                 placeholder="Ex: Janelas"
                 className="mt-1"
               />
             </div>
-            
             <div>
               <Label>Descrição</Label>
               <Textarea
-                value={formData.descricao}
-                onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                value={formState.descricao}
+                onChange={(e) => setFormState((p) => ({ ...p, descricao: e.target.value }))}
                 placeholder="Descrição da categoria"
                 className="mt-1"
               />
             </div>
-            
             <div>
               <Label>Imagem</Label>
               <div className="mt-1 flex items-center gap-4">
-                {formData.imagem_url ? (
+                {formState.imagem_url ? (
                   <div className="relative">
-                    <img 
-                      src={formData.imagem_url} 
-                      alt="Preview" 
+                    <img
+                      src={formState.imagem_url}
+                      alt="Preview"
                       className="w-20 h-20 rounded-lg object-cover"
                     />
                     <Button
                       variant="destructive"
                       size="icon"
                       className="absolute -top-2 -right-2 w-6 h-6"
-                      onClick={() => setFormData({...formData, imagem_url: ''})}
+                      onClick={() => setFormState((p) => ({ ...p, imagem_url: "" }))}
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -274,21 +237,21 @@ export default function Categorias() {
                 )}
               </div>
             </div>
-            
             <div className="flex items-center justify-between">
               <Label>Ativa</Label>
               <Switch
-                checked={formData.ativo}
-                onCheckedChange={(checked) => setFormData({...formData, ativo: checked})}
+                checked={formState.ativo}
+                onCheckedChange={(checked) => setFormState((p) => ({ ...p, ativo: checked }))}
               />
             </div>
           </div>
-          
           <DialogFooter>
-            <Button variant="outline" onClick={fecharModal}>Cancelar</Button>
-            <Button 
-              onClick={salvar} 
-              disabled={!formData.nome || createMutation.isPending || updateMutation.isPending}
+            <Button variant="outline" onClick={close}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={salvar}
+              disabled={!formState.nome || createMutation.isPending || updateMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Save className="w-4 h-4 mr-2" />
@@ -298,27 +261,14 @@ export default function Categorias() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmação de Exclusão */}
-      <AlertDialog open={!!categoriaExcluir} onOpenChange={() => setCategoriaExcluir(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir categoria?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{categoriaExcluir?.nome}"? 
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMutation.mutate(categoriaExcluir?.id)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!categoriaExcluir}
+        onOpenChange={() => setCategoriaExcluir(null)}
+        title="Excluir categoria?"
+        itemName={categoriaExcluir?.nome}
+        onConfirm={() => deleteMutation.mutate(categoriaExcluir?.id)}
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

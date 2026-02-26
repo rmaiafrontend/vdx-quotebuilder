@@ -95,6 +95,14 @@ const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (
 ))
 SheetDescription.displayName = SheetPrimitive.Description.displayName
 
+const VisuallyHidden = React.forwardRef(({ className, ...props }, ref) => (
+  <span
+    ref={ref}
+    className={cn("sr-only", className)}
+    {...props} />
+))
+VisuallyHidden.displayName = "VisuallyHidden"
+
 export {
   Sheet,
   SheetPortal,
@@ -106,4 +114,5 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
+  VisuallyHidden,
 }

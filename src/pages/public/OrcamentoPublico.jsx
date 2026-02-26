@@ -30,14 +30,10 @@ import TipologiaCard from "@/components/orcamento/TipologiaCard";
 import InputComUnidade from "@/components/orcamento/InputComUnidade";
 import PecaConferencia from "@/components/orcamento/PecaConferencia";
 import { calcularPecas, calcularPreco } from "@/components/utils/calculoUtils";
-
-const ETAPAS = [
-  { id: 1, nome: "Categoria", icone: Layers },
-  { id: 2, nome: "Tipologia + Medidas", icone: Calculator },
-  { id: 3, nome: "Conferência", icone: Check },
-  { id: 4, nome: "Acessórios", icone: Plus },
-  { id: 5, nome: "Finalizar", icone: CheckCircle2 }
-];
+import { ETAPAS_PUBLICO } from "@/constants/orcamento";
+import OrcamentoWizardLayout from "@/features/orcamento-wizard/OrcamentoWizardLayout";
+import OrcamentoSuccessScreen from "@/features/orcamento-wizard/OrcamentoSuccessScreen";
+import { toast } from "@/components/ui/use-toast";
 
 // Mock data para Company
 const mockCompany = {
@@ -224,8 +220,17 @@ export default function OrcamentoPublico() {
 
   const executarCalculo = () => {
     if (!tipologiaSelecionada) return;
-    
+
     const resultado = calcularPecas(tipologiaSelecionada, variaveisPreenchidas);
+    if (resultado.erros?.length > 0) {
+      const mensagens = resultado.erros.map((e) => e.mensagem).join("\n");
+      toast({
+        title: "Erro no cálculo das peças",
+        description: mensagens,
+        variant: "destructive"
+      });
+      return;
+    }
     setPecasCalculadas(resultado.pecas);
     setTotais({
       areaTotalRealM2: resultado.areaTotalRealM2,
@@ -420,7 +425,7 @@ export default function OrcamentoPublico() {
   const podeAvancar = () => {
     switch (etapaAtual) {
       case 1: return !!categoriaSelecionada;
-      case 2: return tipologiaSelecionada && variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null) && !!tipoVidroSelecionado;
+      case 2: return tipologiaSelecionada && variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null && Number.isFinite(Number(v.valor))) && !!tipoVidroSelecionado;
       case 3: return pecasCalculadas.every(p => p.conferido);
       case 4: return true; // Acessórios são opcionais
       case 5: return carrinho.length > 0 && clienteInfo.nome && clienteInfo.telefone;
@@ -448,174 +453,73 @@ export default function OrcamentoPublico() {
 
   if (orcamentoSalvo) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white">
-        {/* Header - Mesmo padrão da Home */}
-        <header 
-          className="px-5 py-3.5 flex items-center justify-between"
-          style={{ backgroundColor: primaryColor }}
-        >
-          <div className="flex items-center gap-2.5">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="w-9 h-9 rounded-lg bg-white p-1 object-cover" />
-            ) : (
-              <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
-                <span className="font-bold text-lg" style={{ color: primaryColor }}>
-                  {company?.name?.charAt(0) || 'V'}
-                </span>
-              </div>
-            )}
-            <h1 className="text-white font-semibold">
-              {company?.name || 'Orçamentos'}
-            </h1>
-          </div>
-          <div className="flex items-center gap-1">
-            <button 
-              className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <Bell className="w-5 h-5 text-white" />
-            </button>
-            <button 
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <LogOut className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        </header>
-        
-        <div className="flex items-center justify-center min-h-[calc(100vh-57px)] p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md w-full"
-          >
-            <Card className="text-center">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Orçamento Enviado!</h2>
-                <p className="text-slate-600 mb-6">
-                  Recebemos seu orçamento com sucesso. Entraremos em contato em breve através do telefone informado.
-                </p>
-                <Button onClick={reiniciar} className="w-full" style={{ backgroundColor: primaryColor }}>
-                  Fazer Novo Orçamento
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
+      <OrcamentoSuccessScreen
+        company={company}
+        primaryColor={primaryColor}
+        onRestart={reiniciar}
+        onNavigateHome={() => navigate("/")}
+      />
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white">
-      {/* Header - Mesmo padrão da Home */}
-      <header 
-        className="px-5 py-3.5 flex items-center justify-between sticky top-0 z-30"
-        style={{ backgroundColor: primaryColor }}
+  const backButton =
+    etapaAtual === 1 ? (
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+        style={{ color: primaryColor }}
       >
-        <div className="flex items-center gap-2.5">
-          {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="w-9 h-9 rounded-lg bg-white p-1 object-cover" />
-          ) : (
-            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
-              <span className="font-bold text-lg" style={{ color: primaryColor }}>
-                {company?.name?.charAt(0) || 'V'}
-              </span>
-            </div>
-          )}
-          <h1 className="text-white font-semibold">
-            {company?.name || 'Orçamentos'}
-          </h1>
-        </div>
-        <div className="flex items-center gap-1">
-          <button 
-            className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
-            onClick={() => carrinho.length > 0 && setEtapaAtual(5)}
-            disabled={carrinho.length === 0}
-          >
-            <ShoppingCart className="w-5 h-5 text-white" />
-            {carrinho.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white/20"></span>
-            )}
-          </button>
-          <button 
-            onClick={() => navigate('/')}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <LogOut className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </header>
+        <ArrowLeft className="w-4 h-4" />
+        <span>Voltar para Home</span>
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() => {
+          if (mostrarCarrinho) setMostrarCarrinho(false);
+          else setEtapaAtual(etapaAtual - 1);
+        }}
+        className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+        style={{ color: primaryColor }}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Voltar</span>
+      </button>
+    );
 
-      {/* Progress Steps - Abaixo do header */}
-      <div className="bg-white border-b border-slate-200/80 sticky top-[57px] z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {ETAPAS.map((etapa, i) => (
-              <React.Fragment key={etapa.id}>
-                <div 
-                  className={`flex items-center gap-2 ${
-                    etapaAtual >= etapa.id ? 'text-blue-600' : 'text-slate-400'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    etapaAtual > etapa.id 
-                      ? 'bg-blue-600 text-white' 
-                      : etapaAtual === etapa.id
-                      ? 'bg-blue-100 text-blue-600 border-2 border-blue-600'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}>
-                    {etapaAtual > etapa.id ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <etapa.icone className="w-4 h-4" />
-                    )}
-                  </div>
-                  <span className="text-xs font-medium hidden sm:block">{etapa.nome}</span>
-                </div>
-                {i < ETAPAS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 ${
-                    etapaAtual > etapa.id ? 'bg-blue-600' : 'bg-slate-200'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 py-5">
-        {/* Botão Voltar */}
-        {etapaAtual === 1 ? (
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 mb-5 text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: primaryColor }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Voltar para Home</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              if (mostrarCarrinho) {
-                setMostrarCarrinho(false);
-              } else {
-                setEtapaAtual(etapaAtual - 1);
-              }
-            }}
-            className="flex items-center gap-2 mb-5 text-sm font-medium hover:opacity-70 transition-opacity"
-            style={{ color: primaryColor }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Voltar</span>
-          </button>
+  const rightSlot = (
+    <>
+      <button
+        type="button"
+        className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
+        onClick={() => carrinho.length > 0 && setEtapaAtual(5)}
+        disabled={carrinho.length === 0}
+      >
+        <ShoppingCart className="w-5 h-5 text-white" />
+        {carrinho.length > 0 && (
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white/20" />
         )}
-        
+      </button>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+      >
+        <LogOut className="w-5 h-5 text-white" />
+      </button>
+    </>
+  );
+
+  return (
+    <OrcamentoWizardLayout
+      etapas={ETAPAS_PUBLICO}
+      etapaAtual={etapaAtual}
+      company={company}
+      primaryColor={primaryColor}
+      rightSlot={rightSlot}
+      backButton={backButton}
+    >
         <AnimatePresence mode="wait">
           {/* Etapa 1: Categorias */}
           {etapaAtual === 1 && (
@@ -766,7 +670,7 @@ export default function OrcamentoPublico() {
                       </CardContent>
                     </Card>
 
-                    {variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null) && (
+                    {variaveisPreenchidas.every(v => v.valor !== '' && v.valor !== null && Number.isFinite(Number(v.valor))) && (
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-lg">Tipo de Vidro</CardTitle>
@@ -777,8 +681,8 @@ export default function OrcamentoPublico() {
                         <CardContent className="space-y-3">
                           {tiposVidroDisponiveis.map((tipo) => {
                             const resultadoTemp = calcularPecas(tipologiaSelecionada, variaveisPreenchidas);
-                            const precoEstimado = calcularPreco(resultadoTemp.areaTotalCobrancaM2, tipo.preco_m2 || 0);
-                            
+                            const temErro = resultadoTemp.erros?.length > 0;
+                            const precoEstimado = temErro ? NaN : calcularPreco(resultadoTemp.areaTotalCobrancaM2, tipo.preco_m2 || 0);
                             return (
                               <div
                                 key={tipo.id}
@@ -803,10 +707,10 @@ export default function OrcamentoPublico() {
                                   <div className="flex items-center justify-between sm:justify-end gap-3 sm:flex-col sm:items-end sm:gap-1 flex-shrink-0">
                                     <div className="text-left sm:text-right">
                                       <p className="text-base sm:text-lg font-bold text-slate-900">
-                                        R$ {precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        {temErro ? "—" : `R$ ${precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                       </p>
                                       <p className="text-xs text-slate-500 mt-0.5">
-                                        {resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²
+                                        {temErro ? "—" : `${resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²`}
                                       </p>
                                     </div>
                                     {tipoVidroSelecionado?.id === tipo.id && (
@@ -1295,7 +1199,6 @@ export default function OrcamentoPublico() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
+    </OrcamentoWizardLayout>
   );
 }

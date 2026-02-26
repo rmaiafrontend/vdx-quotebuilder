@@ -1,0 +1,12 @@
+export { authService } from './authService';
+export { categoriasService } from './categoriasService';
+export { tipologiasService } from './tipologiasService';
+export { orcamentoDinamicoService } from './orcamentoDinamicoService';
+export { vidroService } from './vidroService';
+export { calculoService } from './calculoService';
+export { integracoesService } from './integracoesService';
+export { produtosService } from './produtosService';
+export { orcamentosService } from './orcamentosService';
+export { categoriasProdutoService } from './categoriasProdutoService';
+export { configTecnicasService } from './configTecnicasService';
+export { uploadService } from './uploadService';

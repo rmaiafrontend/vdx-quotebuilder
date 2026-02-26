@@ -47,55 +47,55 @@ export default function QuoteCard({ quote, primaryColor }) {
   const StatusIcon = statusConfig.icon;
 
   const handleClick = () => {
-    // Navegar para detalhes do orçamento
     navigate(`/orcamento/${quote.id}`);
   };
 
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-md transition-all active:scale-[0.98] border-slate-200"
+    <Card
+      className="cursor-pointer border-slate-200/80 bg-white rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300/60 transition-all duration-200 active:scale-[0.98] overflow-hidden"
       onClick={handleClick}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
+      <CardContent className="p-0">
+        <div className="flex items-center gap-3 p-4">
+          <div className="shrink-0 w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-slate-500" />
+          </div>
+
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-sm font-semibold text-slate-700 truncate">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-sm font-semibold text-slate-900 truncate">
                 {quote.quote_number || quote.quote_type_name || 'Orçamento'}
               </span>
             </div>
-            
             {quote.quote_type_name && (
-              <p className="text-xs text-slate-500 mb-2 truncate">
-                {quote.quote_type_name}
-              </p>
-            )}
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className={statusConfig.color}>
-                <StatusIcon className="w-3 h-3 mr-1" />
-                {statusConfig.label}
-              </Badge>
-              
-              {quote.total_value && (
-                <span className="text-sm font-bold" style={{ color: primaryColor }}>
-                  R$ {quote.total_value.toLocaleString('pt-BR', { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                  })}
-                </span>
-              )}
-            </div>
-
-            {quote.created_date && (
-              <p className="text-xs text-slate-400 mt-2">
-                {format(new Date(quote.created_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-              </p>
+              <p className="text-xs text-slate-500 truncate">{quote.quote_type_name}</p>
             )}
           </div>
 
-          <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+          <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-0">
+          <div className="flex items-center gap-2">
+            <Badge className={`${statusConfig.color} text-xs`}>
+              <StatusIcon className="w-3 h-3 mr-1" />
+              {statusConfig.label}
+            </Badge>
+            {quote.created_date && (
+              <span className="text-xs text-slate-400">
+                {format(new Date(quote.created_date), "dd MMM yyyy", { locale: ptBR })}
+              </span>
+            )}
+          </div>
+
+          {quote.total_value != null && (
+            <span className="text-sm font-bold tabular-nums whitespace-nowrap" style={{ color: primaryColor }}>
+              R$ {Number(quote.total_value).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>
