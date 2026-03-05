@@ -1,5 +1,5 @@
 /**
- * Vidros service - Documentacao_API §4.2.
+ * Vidros service.
  * POST /api/vidro/validar, POST /api/vidro/recomendar, GET /api/vidro/categorias-aplicacao
  */
 
@@ -9,14 +9,14 @@ const BASE = '/api/vidro';
 
 export const vidroService = {
   validar(payload) {
-    return apiClient.post(`${BASE}/validar`, payload);
+    return apiClient.post(`${BASE}/validar`, payload, { tokenScope: 'public' });
   },
 
   recomendar(payload) {
-    return apiClient.post(`${BASE}/recomendar`, payload);
+    return apiClient.post(`${BASE}/recomendar`, payload, { tokenScope: 'public' });
   },
 
-  listCategoriasAplicacao() {
-    return apiClient.get(`${BASE}/categorias-aplicacao`);
+  getCategoriasAplicacao() {
+    return apiClient.get(`${BASE}/categorias-aplicacao`, { tokenScope: 'public' });
   }
 };

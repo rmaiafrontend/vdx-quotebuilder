@@ -9,29 +9,23 @@ import {
 import { Layers, Calculator, Check, Plus } from "lucide-react";
 
 export const STATUS_CONFIG = {
-  rascunho: { label: "Rascunho", color: "bg-slate-100 text-slate-700", icon: FileText },
-  aguardando_aprovacao: {
+  AGUARDANDO_APROVACAO: {
     label: "Aguardando Aprovação",
     color: "bg-amber-100 text-amber-700",
     icon: Clock,
   },
-  aguardando_pagamento: {
+  AGUARDANDO_PAGAMENTO: {
     label: "Aguardando Pagamento",
     color: "bg-orange-100 text-orange-700",
     icon: CreditCard,
   },
-  em_producao: { label: "Em Produção", color: "bg-blue-100 text-blue-700", icon: Truck },
-  aguardando_retirada: {
+  EM_PRODUCAO: { label: "Em Produção", color: "bg-blue-100 text-blue-700", icon: Truck },
+  AGUARDANDO_RETIRADA: {
     label: "Pronto para Retirada",
     color: "bg-green-100 text-green-700",
     icon: CheckCircle2,
   },
-  concluido: {
-    label: "Concluído",
-    color: "bg-emerald-100 text-emerald-700",
-    icon: CheckCircle2,
-  },
-  cancelado: { label: "Cancelado", color: "bg-red-100 text-red-700", icon: XCircle },
+  CANCELADO: { label: "Cancelado", color: "bg-red-100 text-red-700", icon: XCircle },
 };
 
 export const ETAPAS_PUBLICO = [

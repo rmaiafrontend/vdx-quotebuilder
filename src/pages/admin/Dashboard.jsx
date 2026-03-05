@@ -41,13 +41,11 @@ const formatDate = () => {
 };
 
 const STATUS_CONFIG = {
-  rascunho: { label: "Rascunho", color: "bg-slate-100 text-slate-700", chartColor: "#94a3b8" },
-  aguardando_aprovacao: { label: "Aguardando Aprovação", color: "bg-amber-100 text-amber-700", chartColor: "#f59e0b" },
-  aguardando_pagamento: { label: "Aguardando Pagamento", color: "bg-orange-100 text-orange-700", chartColor: "#f97316" },
-  em_producao: { label: "Em Produção", color: "bg-blue-100 text-blue-700", chartColor: "#3b82f6" },
-  aguardando_retirada: { label: "Pronto", color: "bg-green-100 text-green-700", chartColor: "#22c55e" },
-  concluido: { label: "Concluído", color: "bg-emerald-100 text-emerald-700", chartColor: "#10b981" },
-  cancelado: { label: "Cancelado", color: "bg-red-100 text-red-700", chartColor: "#ef4444" },
+  AGUARDANDO_APROVACAO: { label: "Aguardando Aprovação", color: "bg-amber-100 text-amber-700", chartColor: "#f59e0b" },
+  AGUARDANDO_PAGAMENTO: { label: "Aguardando Pagamento", color: "bg-orange-100 text-orange-700", chartColor: "#f97316" },
+  EM_PRODUCAO: { label: "Em Produção", color: "bg-blue-100 text-blue-700", chartColor: "#3b82f6" },
+  AGUARDANDO_RETIRADA: { label: "Pronto", color: "bg-green-100 text-green-700", chartColor: "#22c55e" },
+  CANCELADO: { label: "Cancelado", color: "bg-red-100 text-red-700", chartColor: "#ef4444" },
 };
 
 const STAT_CARDS = [
@@ -69,7 +67,7 @@ const STAT_CARDS = [
   },
   {
     key: "concluidos",
-    label: "Concluídos",
+    label: "Finalizados",
     icon: CheckCircle2,
     gradient: "from-emerald-500 to-green-500",
     bg: "bg-emerald-500/10",
@@ -88,14 +86,6 @@ const STAT_CARDS = [
 
 const QUICK_ACTIONS = [
   {
-    label: "Novo Orçamento",
-    description: "Criar um novo orçamento para cliente",
-    icon: Plus,
-    to: "/admin/orcamentos/novo",
-    gradient: "from-blue-600 to-indigo-600",
-    shadow: "shadow-blue-500/25",
-  },
-  {
     label: "Tipologias",
     description: "Gerenciar modelos e tipologias",
     icon: Package,
@@ -110,6 +100,14 @@ const QUICK_ACTIONS = [
     to: "/admin/produtos",
     gradient: "from-emerald-500 to-green-500",
     shadow: "shadow-emerald-500/25",
+  },
+  {
+    label: "Categorias",
+    description: "Gerenciar categorias de produtos",
+    icon: FileText,
+    to: "/admin/categorias",
+    gradient: "from-blue-600 to-indigo-600",
+    shadow: "shadow-blue-500/25",
   },
 ];
 
@@ -141,8 +139,8 @@ const CustomTooltip = ({ active, payload }) => {
 
 export default function Dashboard() {
   const { data: orcamentos, isLoading: loadingOrcamentos } = useQuery({
-    queryKey: ["orcamentos"],
-    queryFn: () => entities.Orcamento.list("-created_date", 10),
+    queryKey: ["admin-orcamentos"],
+    queryFn: () => entities.Orcamento.listAll(),
     initialData: [],
   });
 
@@ -155,11 +153,11 @@ export default function Dashboard() {
   const stats = React.useMemo(() => {
     const total = orcamentos.length;
     const emAndamento = orcamentos.filter((o) =>
-      ["aguardando_aprovacao", "aguardando_pagamento", "em_producao"].includes(o.status)
+      ["AGUARDANDO_APROVACAO", "AGUARDANDO_PAGAMENTO", "EM_PRODUCAO"].includes(o.status)
     ).length;
-    const concluidos = orcamentos.filter((o) => o.status === "concluido").length;
+    const concluidos = orcamentos.filter((o) => o.status === "AGUARDANDO_RETIRADA").length;
     const valorTotal = orcamentos
-      .filter((o) => o.status !== "cancelado")
+      .filter((o) => o.status !== "CANCELADO")
       .reduce((sum, o) => sum + (o.preco_total || 0), 0);
 
     return { total, emAndamento, concluidos, valorTotal };
@@ -168,7 +166,7 @@ export default function Dashboard() {
   const chartData = React.useMemo(() => {
     const counts = {};
     orcamentos.forEach((o) => {
-      const status = o.status || "rascunho";
+      const status = o.status || "AGUARDANDO_APROVACAO";
       counts[status] = (counts[status] || 0) + 1;
     });
     return Object.entries(counts)
@@ -219,13 +217,13 @@ export default function Dashboard() {
                   : "Todos os orçamentos estão em dia"}
               </p>
             </div>
-            <Link to="/admin/orcamentos/novo" className="shrink-0">
+            <Link to="/admin/tipologias" className="shrink-0">
               <Button
                 size="lg"
                 className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg shadow-blue-900/20 font-semibold rounded-xl h-11 px-5"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Orçamento
+                <Package className="w-4 h-4 mr-2" />
+                Tipologias
               </Button>
             </Link>
           </div>
@@ -386,19 +384,13 @@ export default function Dashboard() {
                 </div>
                 <p className="text-sm font-semibold text-slate-700">Nenhum orçamento ainda</p>
                 <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                  Crie seu primeiro orçamento para começar a acompanhar tudo por aqui
+                  Os orçamentos criados pelos vidraceiros aparecerão aqui
                 </p>
-                <Link to="/admin/orcamentos/novo">
-                  <Button className="mt-5 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 font-medium">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar orçamento
-                  </Button>
-                </Link>
               </div>
             ) : (
               <div className="space-y-2">
                 {orcamentos.slice(0, 5).map((orcamento) => {
-                  const statusConf = STATUS_CONFIG[orcamento.status] || STATUS_CONFIG.rascunho;
+                  const statusConf = STATUS_CONFIG[orcamento.status] || STATUS_CONFIG.AGUARDANDO_APROVACAO;
                   return (
                     <div
                       key={orcamento.id}

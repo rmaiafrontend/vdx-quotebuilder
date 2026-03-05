@@ -4,7 +4,6 @@ import { tipologiasService } from './services/tipologiasService';
 import { integracoesService } from './services/integracoesService';
 import { produtosService } from './services/produtosService';
 import { orcamentosService } from './services/orcamentosService';
-import { ORCAMENTOS_EXEMPLO } from '../constants/orcamentosExemplo';
 import { categoriasProdutoService } from './services/categoriasProdutoService';
 import { configTecnicasService } from './services/configTecnicasService';
 import { uploadService } from './services/uploadService';
@@ -98,19 +97,21 @@ export const entities = {
   },
 
   Orcamento: {
-    list: async (orderBy = '-created_date', limit = 100) => {
-      const fromApi = await orcamentosService.list({ orderBy, limit });
-      const list = ensureList(fromApi);
-      const merged = [...ORCAMENTOS_EXEMPLO, ...list];
-      return sortData(merged, orderBy);
+    // Vidraceiro
+    listMyQuotes: async (orderBy = '-created_date') => {
+      const list = await orcamentosService.listMyQuotes();
+      return sortData(ensureList(list), orderBy);
     },
-    filter: async (filters = {}, orderBy = 'ordem') => {
-      const list = await orcamentosService.list({ orderBy });
-      return sortData(filterData(ensureList(list), filters), orderBy);
+    getMyQuote: (id) => orcamentosService.getMyQuote(id),
+    createAsVidraceiro: (data) => orcamentosService.createAsVidraceiro(data),
+    // Admin
+    listAll: async (filters = {}, orderBy = '-created_date') => {
+      const list = await orcamentosService.listAll(filters);
+      return sortData(ensureList(list), orderBy);
     },
-    create: (data) => orcamentosService.create(data),
-    update: (id, data) => orcamentosService.update(id, data),
-    delete: (id) => orcamentosService.delete(id)
+    getById: (id) => orcamentosService.getById(id),
+    getStats: () => orcamentosService.getStats(),
+    updateStatus: (id, data) => orcamentosService.updateStatus(id, data),
   },
 
   TipoVidroTecnico: {

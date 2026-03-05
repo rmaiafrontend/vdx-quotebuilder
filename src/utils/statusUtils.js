@@ -1,17 +1,15 @@
 /**
- * Converte status do backend (pt-BR) para formato do frontend (en).
+ * Converte status do backend (UPPERCASE) para formato do frontend (en).
  */
 export function convertStatusToFrontend(backendStatus) {
     const map = {
-        concluido: 'approved',
-        cancelado: 'rejected',
-        rascunho: 'draft',
-        aguardando_aprovacao: 'pending',
-        aguardando_pagamento: 'sent',
-        em_producao: 'sent',
-        aguardando_retirada: 'sent',
+        AGUARDANDO_APROVACAO: 'pending',
+        AGUARDANDO_PAGAMENTO: 'sent',
+        EM_PRODUCAO: 'sent',
+        AGUARDANDO_RETIRADA: 'approved',
+        CANCELADO: 'rejected',
     };
-    return map[backendStatus] || 'draft';
+    return map[backendStatus] || 'pending';
 }
 
 /**

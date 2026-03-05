@@ -1,30 +1,42 @@
 /**
- * Orçamentos - GET/POST /api/orcamentos, GET/PUT/DELETE /api/orcamentos/{id}.
- * Query list: orderBy, limit.
+ * Orcamentos service — rotas separadas para vidraceiro e admin.
+ *
+ * Vidraceiro: POST /api/vidraceiro/orcamentos, GET /api/vidraceiro/me/orcamentos, GET /api/vidraceiro/orcamentos/{id}
+ * Admin: GET /api/admin/orcamentos, GET /api/admin/orcamentos/{id}, GET /api/admin/orcamentos/stats, PATCH /api/admin/orcamentos/{id}/status
  */
 
 import { apiClient } from '../apiClient';
 
-const BASE = '/api/orcamentos';
-
 export const orcamentosService = {
-  list({ orderBy, limit } = {}) {
-    return apiClient.get(BASE, { params: { orderBy, limit } });
+  // ── Vidraceiro ──
+
+  createAsVidraceiro(data) {
+    return apiClient.post('/api/vidraceiro/orcamentos', data, { tokenScope: 'vidraceiro' });
+  },
+
+  listMyQuotes() {
+    return apiClient.get('/api/vidraceiro/me/orcamentos', { tokenScope: 'vidraceiro' });
+  },
+
+  getMyQuote(id) {
+    return apiClient.get(`/api/vidraceiro/me/orcamentos/${id}`, { tokenScope: 'vidraceiro' });
+  },
+
+  // ── Admin ──
+
+  listAll(filters = {}) {
+    return apiClient.get('/api/admin/orcamentos', { params: filters, tokenScope: 'admin' });
   },
 
   getById(id) {
-    return apiClient.get(`${BASE}/${id}`);
+    return apiClient.get(`/api/admin/orcamentos/${id}`, { tokenScope: 'admin' });
   },
 
-  create(data) {
-    return apiClient.post(BASE, data);
+  getStats() {
+    return apiClient.get('/api/admin/orcamentos/stats', { tokenScope: 'admin' });
   },
 
-  update(id, data) {
-    return apiClient.put(`${BASE}/${id}`, data);
-  },
-
-  delete(id) {
-    return apiClient.delete(`${BASE}/${id}`);
+  updateStatus(id, { status, motivo }) {
+    return apiClient.patch(`/api/admin/orcamentos/${id}/status`, { status, motivo }, { tokenScope: 'admin' });
   }
 };

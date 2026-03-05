@@ -13,7 +13,7 @@ import { vidraceiroSchema } from '@/lib/vidraceiro-schema';
 import { formatPhone, formatCPF, formatCNPJ } from '@/utils/docUtils';
 
 export default function IdentidadeModal() {
-  const { showModal, urlDefaults, identify } = useVidraceiro();
+  const { showModal, urlDefaults, identify, isLoading, error } = useVidraceiro();
   const { company, primaryColor } = useCompanyTheme();
 
   const form = useForm({
@@ -39,8 +39,10 @@ export default function IdentidadeModal() {
     form.clearErrors('companyName');
   }
 
-  function onSubmit(data) {
-    identify(data);
+  async function onSubmit(data) {
+    try {
+      await identify(data);
+    } catch { /* error is handled by context */ }
   }
 
   if (!showModal) return null;
@@ -90,6 +92,11 @@ export default function IdentidadeModal() {
             {/* Form */}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 py-5 space-y-4">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
                 <FormField
                   control={form.control}
                   name="phone"
@@ -216,11 +223,18 @@ export default function IdentidadeModal() {
 
                 <button
                   type="submit"
-                  className="w-full h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98]"
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
                 >
-                  Continuar
-                  <ArrowRight className="w-4 h-4" />
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Continuar
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
 
                 <div className="flex items-center justify-center gap-1.5 pt-1">

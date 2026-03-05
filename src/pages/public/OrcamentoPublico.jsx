@@ -93,7 +93,7 @@ export default function OrcamentoPublico() {
   };
 
   const salvarMutation = useMutation({
-    mutationFn: (data) => entities.Orcamento.create(data),
+    mutationFn: (data) => entities.Orcamento.createAsVidraceiro(data),
     onSuccess: () => setOrcamentoSalvo(true)
   });
 
@@ -118,13 +118,11 @@ export default function OrcamentoPublico() {
 
   const salvarOrcamento = () => {
     salvarMutation.mutate({
-      numero: `ORC-${Date.now().toString().slice(-8)}`,
       cliente_nome: clienteInfo.nome,
       cliente_telefone: clienteInfo.telefone,
       cliente_email: clienteInfo.email,
       itens: carrinho,
       preco_total: precoTotalCarrinho,
-      status: 'aguardando_aprovacao'
     });
   };
 

@@ -81,69 +81,43 @@ function tipologiaToApi(data, tipologiaId = null) {
   return result;
 }
 
-/**
- * Tipologias service.
- * GET /api/configuracao/tipologias (todas), GET por categoria, GET /tipologias/{id},
- * POST cadastrar, PUT /tipologia/{id}, DELETE /tipologia/{id}
- */
 export const tipologiasService = {
-  /** Lista todas as tipologias (GET /api/configuracao/tipologias) */
   list() {
-    return apiClient.get(`${BASE}/tipologias`);
+    return apiClient.get(`${BASE}/tipologias`, { tokenScope: 'public' });
   },
 
   listByCategoria(categoriaId) {
-    return apiClient.get(`${BASE}/categorias/${categoriaId}/tipologias`);
+    return apiClient.get(`${BASE}/categorias/${categoriaId}/tipologias`, { tokenScope: 'public' });
   },
 
   getById(id) {
-    return apiClient.get(`${BASE}/tipologias/${id}`);
+    return apiClient.get(`${BASE}/tipologias/${id}`, { tokenScope: 'public' });
   },
 
   create(data) {
-    return apiClient.post(`${BASE}/tipologia/cadastrar`, tipologiaToApi(data));
+    return apiClient.post(`${BASE}/tipologia/cadastrar`, tipologiaToApi(data), { tokenScope: 'admin' });
   },
 
   update(id, data) {
-    return apiClient.put(`${BASE}/tipologia/${id}`, tipologiaToApi(data, id));
+    return apiClient.put(`${BASE}/tipologia/${id}`, tipologiaToApi(data, id), { tokenScope: 'admin' });
   },
 
   delete(id) {
-    return apiClient.delete(`${BASE}/tipologia/${id}`);
+    return apiClient.delete(`${BASE}/tipologia/${id}`, { tokenScope: 'admin' });
   },
 
-  listVariaveis(tipologiaId) {
-    return apiClient.get(`${BASE}/tipologias/${tipologiaId}/variaveis`);
-  },
-
-  createVariavel(data) {
-    // Envia dados diretamente do front-end (snake_case)
-    return apiClient.post(`${BASE}/variavel/cadastrar`, data);
-  },
-
-  listFormulas(tipologiaId) {
-    return apiClient.get(`${BASE}/tipologias/${tipologiaId}/formulas`);
-  },
-
-  createFormula(data) {
-    // Envia dados diretamente do front-end (snake_case)
-    return apiClient.post(`${BASE}/formula/cadastrar`, data);
-  },
-
-  listPecas(tipologiaId) {
-    return apiClient.get(`${BASE}/tipologias/${tipologiaId}/pecas`);
-  },
-
-  createPeca(data) {
-    // Envia dados diretamente do front-end (snake_case)
-    return apiClient.post(`${BASE}/peca/cadastrar`, data);
+  getCoresComPreco(tipologiaId, areaTotalM2) {
+    return apiClient.get(`${BASE}/tipologias/${tipologiaId}/cores-com-preco`, {
+      params: { areaTotalM2 },
+      tokenScope: 'public'
+    });
   },
 
   listCores() {
-    return apiClient.get(`${BASE}/cores`);
+    return apiClient.get(`${BASE}/cores`, { tokenScope: 'public' });
   },
 
   getCorByCodigo(codigo) {
-    return apiClient.get(`${BASE}/cores/${encodeURIComponent(codigo)}`);
+    return apiClient.get(`${BASE}/cores/${encodeURIComponent(codigo)}`, { tokenScope: 'public' });
   }
 };

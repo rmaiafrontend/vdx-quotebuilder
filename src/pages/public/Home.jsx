@@ -1,12 +1,11 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { entities } from '@/api/api';
 import { motion } from 'framer-motion';
-import { Plus, FileText, Clock, MessageCircle, ChevronRight, LogOut, Bell, Sparkles } from 'lucide-react';
+import { Plus, FileText, Clock, MessageCircle, ChevronRight, LogOut, Bell } from 'lucide-react';
 import PublicHeader from '@/components/public/PublicHeader';
 import { useCompanyTheme } from '@/hooks/useCompanyTheme';
-import { convertStatusToFrontend } from '@/utils/statusUtils';
 import { useVidraceiro } from '@/lib/VidracerioContext';
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
@@ -18,18 +17,12 @@ export default function Home() {
   const { vidraceiro, logout } = useVidraceiro();
 
   const { data: allOrcamentos = [] } = useQuery({
-    queryKey: ['orcamentos'],
-    queryFn: () => entities.Orcamento.list()
+    queryKey: ['vidraceiro-orcamentos'],
+    queryFn: () => entities.Orcamento.listMyQuotes()
   });
 
-  const customerQuotes = allOrcamentos.map(orc => ({
-    id: orc.id,
-    status: convertStatusToFrontend(orc.status),
-    customer_id: orc.cliente_email
-  }));
-
-  const openQuotesCount = useMemo(() => customerQuotes.filter(q => ['draft', 'pending', 'sent'].includes(q.status)).length, [customerQuotes]);
-  const completedQuotesCount = useMemo(() => customerQuotes.filter(q => ['approved', 'rejected', 'expired'].includes(q.status)).length, [customerQuotes]);
+  const openQuotesCount = useMemo(() => allOrcamentos.filter(o => !['AGUARDANDO_RETIRADA', 'CANCELADO'].includes(o.status)).length, [allOrcamentos]);
+  const completedQuotesCount = useMemo(() => allOrcamentos.filter(o => ['AGUARDANDO_RETIRADA', 'CANCELADO'].includes(o.status)).length, [allOrcamentos]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -77,7 +70,7 @@ export default function Home() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="px-4 max-w-2xl mx-auto -mt-12 pb-8 space-y-4"
+        className="relative z-10 px-4 max-w-2xl mx-auto -mt-12 pb-8 space-y-4"
       >
         {/* CTA - Novo Orcamento */}
         <motion.button

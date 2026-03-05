@@ -1,6 +1,6 @@
 /**
  * Configurações técnicas (OpenAPI: tecnico-controller).
- * URLs: /api/configuracao/tipos-vidro, tipos-configuracao, itens-configuracao.
+ * URLs: /api/configuracao-tecnica/tipos-vidro, tipos-configuracao, itens-configuracao.
  */
 
 import { apiClient } from '../apiClient';
@@ -25,26 +25,26 @@ function crud(base) {
   };
 }
 
-export const tiposVidroTecnico = crud('/api/configuracao/tipos-vidro');
-export const tiposConfiguracaoTecnica = crud('/api/configuracao/tipos-configuracao');
+export const tiposVidroTecnico = crud('/api/configuracao-tecnica/tipos-vidro');
+export const tiposConfiguracaoTecnica = crud('/api/configuracao-tecnica/tipos-configuracao');
 
 export const itensConfiguracaoTecnica = {
   list({ tipoConfiguracaoId, orderBy, limit } = {}) {
-    return apiClient.get('/api/configuracao/itens-configuracao', {
+    return apiClient.get('/api/configuracao-tecnica/itens-configuracao', {
       params: { tipoConfiguracaoId, orderBy, limit }
     });
   },
   getById(id) {
-    return apiClient.get(`/api/configuracao/itens-configuracao/${id}`);
+    return apiClient.get(`/api/configuracao-tecnica/itens-configuracao/${id}`);
   },
   create(data) {
-    return apiClient.post('/api/configuracao/itens-configuracao', data);
+    return apiClient.post('/api/configuracao-tecnica/itens-configuracao', data);
   },
   update(id, data) {
-    return apiClient.put(`/api/configuracao/itens-configuracao/${id}`, data);
+    return apiClient.put(`/api/configuracao-tecnica/itens-configuracao/${id}`, data);
   },
   delete(id) {
-    return apiClient.delete(`/api/configuracao/itens-configuracao/${id}`);
+    return apiClient.delete(`/api/configuracao-tecnica/itens-configuracao/${id}`);
   }
 };
 

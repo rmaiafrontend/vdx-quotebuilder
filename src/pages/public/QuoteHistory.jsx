@@ -17,12 +17,12 @@ export default function QuoteHistory() {
   const { company, primaryColor } = useCompanyTheme();
 
   const { data: allOrcamentos = [] } = useQuery({
-    queryKey: ['orcamentos'],
-    queryFn: () => entities.Orcamento.list()
+    queryKey: ['vidraceiro-orcamentos'],
+    queryFn: () => entities.Orcamento.listMyQuotes()
   });
 
   const completedQuotes = allOrcamentos
-    .filter(q => ['concluido', 'cancelado'].includes(q.status))
+    .filter(q => ['AGUARDANDO_RETIRADA', 'CANCELADO'].includes(q.status))
     .map(orcamentoToQuote);
 
   return (
@@ -50,7 +50,7 @@ export default function QuoteHistory() {
       </div>
 
       {/* Content */}
-      <div className="px-4 max-w-2xl mx-auto -mt-4 pb-8">
+      <div className="relative z-10 px-4 max-w-2xl mx-auto -mt-4 pb-8">
         {completedQuotes.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 16 }}

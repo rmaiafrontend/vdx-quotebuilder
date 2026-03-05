@@ -1,15 +1,17 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Package, 
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Home,
+  Package,
   LayoutGrid,
   Menu,
   Wrench,
-  ShoppingCart
+  ShoppingCart,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, VisuallyHidden } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/AuthContext";
 
 /**
  * Layout para rotas privadas (admin/backoffice)
@@ -18,6 +20,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, VisuallyHidden } from "@
 export default function AdminLayout({ children }) {
   const [open, setOpen] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   
   const menuItems = [
     { name: "Dashboard", icon: Home, page: "/admin/dashboard" },
@@ -82,12 +86,26 @@ export default function AdminLayout({ children }) {
         </ul>
       </nav>
 
-      {/* Footer / CTA */}
-      <div className="shrink-0 p-3 border-t border-slate-200/60 bg-white/50">
-        <div className="rounded-xl border border-slate-200/80 bg-gradient-to-br from-slate-50 to-blue-50/50 p-3.5 shadow-sm">
-          <p className="text-sm font-medium text-slate-700">Precisa de ajuda?</p>
-          <p className="text-xs text-slate-500 mt-0.5">Entre em contato com o suporte</p>
+      {/* Footer / User + Logout */}
+      <div className="shrink-0 p-3 border-t border-slate-200/60 bg-white/50 space-y-2">
+        <div className="flex items-center gap-3 px-1">
+          <div className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+            <span className="text-white text-xs font-bold uppercase">
+              {(user?.nome || 'A').split(' ').map(p => p[0]).slice(0, 2).join('')}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-slate-900 truncate">{user?.nome || 'Admin'}</p>
+            <p className="text-xs text-slate-500 truncate">{user?.email || 'Administrador'}</p>
+          </div>
         </div>
+        <button
+          onClick={() => { logout(); navigate('/admin/login'); }}
+          className="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Sair
+        </button>
       </div>
     </div>
   );

@@ -10,11 +10,11 @@ import PublicHeader from '@/components/public/PublicHeader';
 import { useCompanyTheme } from '@/hooks/useCompanyTheme';
 
 const STATUS_CONFIG = {
-  approved: { label: 'Aprovado', bgColor: 'bg-emerald-100', textColor: 'text-emerald-700', gradientFrom: '#10b981', gradientTo: '#059669', icon: CheckCircle2 },
-  rejected: { label: 'Rejeitado', bgColor: 'bg-red-100', textColor: 'text-red-700', gradientFrom: '#ef4444', gradientTo: '#dc2626', icon: XCircle },
-  expired: { label: 'Expirado', bgColor: 'bg-slate-100', textColor: 'text-slate-600', gradientFrom: '#94a3b8', gradientTo: '#64748b', icon: Clock },
-  pending: { label: 'Pendente', bgColor: 'bg-amber-100', textColor: 'text-amber-700', gradientFrom: '#f59e0b', gradientTo: '#d97706', icon: Clock },
-  sent: { label: 'Enviado', bgColor: 'bg-blue-100', textColor: 'text-blue-700', gradientFrom: '#3b82f6', gradientTo: '#2563eb', icon: Send },
+  AGUARDANDO_APROVACAO: { label: 'Aguardando Aprovação', bgColor: 'bg-amber-100', textColor: 'text-amber-700', gradientFrom: '#f59e0b', gradientTo: '#d97706', icon: Clock },
+  AGUARDANDO_PAGAMENTO: { label: 'Aguardando Pagamento', bgColor: 'bg-orange-100', textColor: 'text-orange-700', gradientFrom: '#f97316', gradientTo: '#ea580c', icon: Clock },
+  EM_PRODUCAO: { label: 'Em Produção', bgColor: 'bg-blue-100', textColor: 'text-blue-700', gradientFrom: '#3b82f6', gradientTo: '#2563eb', icon: Send },
+  AGUARDANDO_RETIRADA: { label: 'Pronto para Retirada', bgColor: 'bg-emerald-100', textColor: 'text-emerald-700', gradientFrom: '#10b981', gradientTo: '#059669', icon: CheckCircle2 },
+  CANCELADO: { label: 'Cancelado', bgColor: 'bg-red-100', textColor: 'text-red-700', gradientFrom: '#ef4444', gradientTo: '#dc2626', icon: XCircle },
 };
 
 export default function QuoteDetail() {
@@ -22,13 +22,13 @@ export default function QuoteDetail() {
   const navigate = useNavigate();
   const { company, primaryColor } = useCompanyTheme();
 
-  const { data: orcamentos = [] } = useQuery({
-    queryKey: ['orcamentos'],
-    queryFn: () => entities.Orcamento.list()
+  const { data: quote } = useQuery({
+    queryKey: ['vidraceiro-orcamento', id],
+    queryFn: () => entities.Orcamento.getMyQuote(id),
+    enabled: !!id,
   });
 
-  const quote = orcamentos.find(o => o.id === id);
-  const statusConfig = STATUS_CONFIG[quote?.status] || STATUS_CONFIG.pending;
+  const statusConfig = STATUS_CONFIG[quote?.status] || STATUS_CONFIG.AGUARDANDO_APROVACAO;
   const StatusIcon = statusConfig.icon;
 
   if (!quote) {
@@ -88,7 +88,7 @@ export default function QuoteDetail() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 max-w-2xl mx-auto -mt-6 pb-8 space-y-4"
+        className="relative z-10 px-4 max-w-2xl mx-auto -mt-6 pb-8 space-y-4"
       >
         {/* Info Cards */}
         <div className="grid grid-cols-2 gap-3">
