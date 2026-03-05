@@ -25,11 +25,11 @@ export const orcamentosService = {
   // ── Admin ──
 
   listAll(filters = {}) {
-    return apiClient.get('/api/admin/orcamentos', { params: filters, tokenScope: 'admin' });
+    return apiClient.get('/api/orcamentos', { params: filters, tokenScope: 'admin' });
   },
 
   getById(id) {
-    return apiClient.get(`/api/admin/orcamentos/${id}`, { tokenScope: 'admin' });
+    return apiClient.get(`/api/orcamentos/${id}`, { tokenScope: 'admin' });
   },
 
   getStats() {
