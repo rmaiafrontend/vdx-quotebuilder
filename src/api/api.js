@@ -52,6 +52,12 @@ export const entities = {
 
   Tipologia: {
     list: async (orderBy = 'ordem') => sortData(await tipologiasService.list(), orderBy),
+    listByCategoria: async (categoriaId, orderBy = 'ordem') => {
+      if (categoriaId == null || categoriaId === '') return [];
+      const list = await tipologiasService.listByCategoria(categoriaId);
+      return sortData(ensureList(list), orderBy);
+    },
+    getById: (id) => tipologiasService.getById(id),
     filter: async (filters = {}, orderBy = 'ordem') => {
       const list = await tipologiasService.list();
       return sortData(filterData(list, filters), orderBy);

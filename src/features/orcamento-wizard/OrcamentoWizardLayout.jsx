@@ -1,16 +1,6 @@
 import React from "react";
 import { Check } from "lucide-react";
 
-/**
- * Layout do wizard de orçamento: header (logo, nome, ações) + barra de progresso das etapas.
- * @param {Array<{ id: number, nome: string, icone: React.Component }>} etapas - Lista de etapas (ETAPAS_PUBLICO ou ETAPAS_ADMIN)
- * @param {number} etapaAtual - Índice da etapa atual (1-based)
- * @param {object} company - { name, logo_url, primary_color }
- * @param {string} primaryColor - Cor primária (fallback)
- * @param {React.ReactNode} [rightSlot] - Conteúdo à direita do header (ex: ícone do carrinho)
- * @param {React.ReactNode} [backButton] - Botão/link Voltar (renderizado acima do conteúdo)
- * @param {React.ReactNode} children - Conteúdo da etapa
- */
 export default function OrcamentoWizardLayout({
   etapas,
   etapaAtual,
@@ -23,50 +13,54 @@ export default function OrcamentoWizardLayout({
   const color = primaryColor || company?.primary_color || "#1e88e5";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50">
       {/* Header */}
       <header
-        className="px-5 py-4 flex items-center justify-between sticky top-0 z-30 shadow-md"
+        className="px-5 py-4 flex items-center justify-between sticky top-0 z-30 shadow-lg"
         style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)` }}
       >
-        <div className="flex items-center gap-3">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
+        <div className="relative flex items-center gap-3">
           {company?.logo_url ? (
             <img
               src={company.logo_url}
               alt={company.name}
-              className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-sm"
+              className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-md ring-2 ring-white/30"
             />
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/30">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 shadow-md">
               <span className="font-bold text-lg text-white">
                 {company?.name?.charAt(0) || "V"}
               </span>
             </div>
           )}
-          <h1 className="text-white font-semibold text-lg tracking-tight">{company?.name || "Orçamentos"}</h1>
+          <h1 className="text-white font-bold text-lg tracking-tight">{company?.name || "Orcamentos"}</h1>
         </div>
-        {rightSlot && <div className="flex items-center gap-1">{rightSlot}</div>}
+        {rightSlot && <div className="relative flex items-center gap-1">{rightSlot}</div>}
       </header>
 
       {/* Stepper */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-200/80 sticky top-[60px] z-20">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-slate-200/80 sticky top-[60px] z-20 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3.5">
           <div className="flex items-center justify-between">
             {etapas.map((etapa, i) => (
               <React.Fragment key={etapa.id}>
-                <div
-                  className={`flex items-center gap-2.5 transition-colors ${
-                    etapaAtual >= etapa.id ? "text-blue-600" : "text-slate-400"
-                  }`}
-                >
+                <div className="flex items-center gap-2.5 transition-colors">
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                       etapaAtual > etapa.id
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+                        ? "text-white shadow-lg"
                         : etapaAtual === etapa.id
-                        ? "bg-blue-50 text-blue-600 ring-2 ring-blue-500"
+                        ? "ring-2 shadow-sm"
                         : "bg-slate-100 text-slate-400"
                     }`}
+                    style={
+                      etapaAtual > etapa.id
+                        ? { background: `linear-gradient(135deg, ${color}, ${color}cc)`, boxShadow: `0 4px 12px ${color}40` }
+                        : etapaAtual === etapa.id
+                        ? { backgroundColor: `${color}12`, color: color, ringColor: color, borderColor: color, boxShadow: `0 0 0 2px ${color}` }
+                        : {}
+                    }
                   >
                     {etapaAtual > etapa.id ? (
                       <Check className="w-4 h-4" strokeWidth={2.5} />
@@ -75,14 +69,19 @@ export default function OrcamentoWizardLayout({
                     )}
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${
-                    etapaAtual === etapa.id ? "font-semibold" : ""
-                  }`}>{etapa.nome}</span>
+                    etapaAtual === etapa.id ? "font-semibold" : etapaAtual > etapa.id ? "" : "text-slate-400"
+                  }`} style={etapaAtual >= etapa.id ? { color: etapaAtual === etapa.id ? color : '#334155' } : {}}>
+                    {etapa.nome}
+                  </span>
                 </div>
                 {i < etapas.length - 1 && (
-                  <div className="flex-1 mx-3 h-0.5 rounded-full overflow-hidden bg-slate-200">
+                  <div className="flex-1 mx-3 h-1 rounded-full overflow-hidden bg-slate-100">
                     <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                      style={{ width: etapaAtual > etapa.id ? "100%" : "0%" }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: etapaAtual > etapa.id ? "100%" : "0%",
+                        background: `linear-gradient(90deg, ${color}, ${color}cc)`
+                      }}
                     />
                   </div>
                 )}

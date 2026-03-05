@@ -49,11 +49,15 @@ function tipologiaToApi(data, tipologiaId = null) {
       return base;
     }),
     pecas: (data.pecas || []).map((p) => {
-      // Itens de configuração: cada config tem categoria (tipo) + itens_ids (ids dos itens). Backend pode usar itens_ids ou itensIds.
+      // Itens de configuração: API espera itensConfiguracao = [{ itemConfiguracaoId, obrigatorio }]
       const configs = p.configuracoes_tecnicas || p.configuracoesTecnicas || [];
-      const itensConfigIds = configs.flatMap((c) => {
+      const itensConfiguracao = configs.flatMap((c) => {
         const ids = c.itens_ids ?? c.itensIds ?? [];
-        return (Array.isArray(ids) ? ids : []).map(Number).filter((id) => !Number.isNaN(id) && id > 0);
+        const obrigatorio = c.obrigatorio ?? false;
+        return (Array.isArray(ids) ? ids : [])
+          .map(Number)
+          .filter((id) => !Number.isNaN(id) && id > 0)
+          .map((itemConfiguracaoId) => ({ itemConfiguracaoId, obrigatorio }));
       });
       const base = {
         nome: trim(p.nome) ?? '',
@@ -61,7 +65,7 @@ function tipologiaToApi(data, tipologiaId = null) {
         formulaAltura: trim(p.formula_altura) ?? '',
         quantidade: num(p.quantidade) ?? 1,
         ordem: p.ordem != null ? Number(p.ordem) : 0,
-        itensConfiguracaoIds: itensConfigIds,
+        itensConfiguracao,
         imagem_url: trim(p.imagem_url) ?? '',
       };
       const id = idOrNull(p.id);

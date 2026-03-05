@@ -1,93 +1,106 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, CheckCircle2, XCircle, Clock, ChevronRight } from 'lucide-react';
+import { FileText, CheckCircle2, XCircle, Clock, ChevronRight, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const STATUS_CONFIG = {
-  // Status finais (histórico)
-  approved: { 
-    label: 'Aprovado', 
-    color: 'bg-green-100 text-green-700', 
-    icon: CheckCircle2 
+  approved: {
+    label: 'Aprovado',
+    bgColor: 'bg-emerald-50',
+    textColor: 'text-emerald-700',
+    badgeBg: 'bg-emerald-100 text-emerald-700',
+    accentColor: '#10b981',
+    icon: CheckCircle2
   },
-  rejected: { 
-    label: 'Rejeitado', 
-    color: 'bg-red-100 text-red-700', 
-    icon: XCircle 
+  rejected: {
+    label: 'Rejeitado',
+    bgColor: 'bg-red-50',
+    textColor: 'text-red-700',
+    badgeBg: 'bg-red-100 text-red-700',
+    accentColor: '#ef4444',
+    icon: XCircle
   },
-  expired: { 
-    label: 'Expirado', 
-    color: 'bg-slate-100 text-slate-700', 
-    icon: Clock 
+  expired: {
+    label: 'Expirado',
+    bgColor: 'bg-slate-50',
+    textColor: 'text-slate-600',
+    badgeBg: 'bg-slate-100 text-slate-600',
+    accentColor: '#94a3b8',
+    icon: Clock
   },
-  // Status em aberto
   pending: {
-    label: 'Aguardando Aprovação',
-    color: 'bg-amber-100 text-amber-700',
+    label: 'Aguardando',
+    bgColor: 'bg-amber-50',
+    textColor: 'text-amber-700',
+    badgeBg: 'bg-amber-100 text-amber-700',
+    accentColor: '#f59e0b',
     icon: Clock
   },
   sent: {
     label: 'Em Andamento',
-    color: 'bg-blue-100 text-blue-700',
-    icon: Clock
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    badgeBg: 'bg-blue-100 text-blue-700',
+    accentColor: '#3b82f6',
+    icon: Send
   },
   draft: {
     label: 'Rascunho',
-    color: 'bg-slate-100 text-slate-700',
+    bgColor: 'bg-slate-50',
+    textColor: 'text-slate-600',
+    badgeBg: 'bg-slate-100 text-slate-600',
+    accentColor: '#94a3b8',
     icon: FileText
   }
 };
 
 export default function QuoteCard({ quote, primaryColor }) {
   const navigate = useNavigate();
-  const statusConfig = STATUS_CONFIG[quote.status] || STATUS_CONFIG.expired;
-  const StatusIcon = statusConfig.icon;
-
-  const handleClick = () => {
-    navigate(`/orcamento/${quote.id}`);
-  };
+  const config = STATUS_CONFIG[quote.status] || STATUS_CONFIG.expired;
+  const StatusIcon = config.icon;
 
   return (
-    <Card
-      className="cursor-pointer border-slate-200/80 bg-white rounded-2xl shadow-sm hover:shadow-md hover:border-slate-300/60 transition-all duration-200 active:scale-[0.98] overflow-hidden"
-      onClick={handleClick}
+    <div
+      className="relative cursor-pointer bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] hover:shadow-lg hover:scale-[1.005] transition-all duration-200 active:scale-[0.98] overflow-hidden"
+      onClick={() => navigate(`/orcamento/${quote.id}`)}
     >
-      <CardContent className="p-0">
-        <div className="flex items-center gap-3 p-4">
-          <div className="shrink-0 w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-slate-500" />
-          </div>
+      {/* Left accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
+        style={{ backgroundColor: config.accentColor }}
+      />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-sm font-semibold text-slate-900 truncate">
-                {quote.quote_number || quote.quote_type_name || 'Orçamento'}
-              </span>
-            </div>
-            {quote.quote_type_name && (
-              <p className="text-xs text-slate-500 truncate">{quote.quote_type_name}</p>
-            )}
-          </div>
-
-          <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+      <div className="flex items-center gap-3.5 p-4 pl-5">
+        {/* Status icon */}
+        <div
+          className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${config.bgColor}`}
+        >
+          <StatusIcon className={`w-5 h-5 ${config.textColor}`} />
         </div>
 
-        <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-0">
-          <div className="flex items-center gap-2">
-            <Badge className={`${statusConfig.color} text-xs`}>
-              <StatusIcon className="w-3 h-3 mr-1" />
-              {statusConfig.label}
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-semibold text-slate-900 truncate">
+              {quote.quote_number || quote.quote_type_name || 'Orcamento'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className={`${config.badgeBg} text-[11px] px-2 py-0.5 font-medium`}>
+              {config.label}
             </Badge>
             {quote.created_date && (
-              <span className="text-xs text-slate-400">
+              <span className="text-[11px] text-slate-400 font-medium">
                 {format(new Date(quote.created_date), "dd MMM yyyy", { locale: ptBR })}
               </span>
             )}
           </div>
+        </div>
 
+        {/* Price + Arrow */}
+        <div className="flex items-center gap-2 shrink-0">
           {quote.total_value != null && (
             <span className="text-sm font-bold tabular-nums whitespace-nowrap" style={{ color: primaryColor }}>
               R$ {Number(quote.total_value).toLocaleString('pt-BR', {
@@ -96,8 +109,9 @@ export default function QuoteCard({ quote, primaryColor }) {
               })}
             </span>
           )}
+          <ChevronRight className="w-4 h-4 text-slate-300" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

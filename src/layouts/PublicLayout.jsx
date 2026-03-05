@@ -1,13 +1,14 @@
 import React from 'react';
+import { VidracerioProvider } from '@/lib/VidracerioContext';
+import IdentidadeModal from '@/components/public/IdentidadeModal';
 
-/**
- * Layout para rotas públicas (clientes)
- * Layout minimalista sem sidebar ou menu de admin
- */
 export default function PublicLayout({ children }) {
   return (
-    <div className="min-h-screen bg-slate-50">
-      {children}
-    </div>
+    <VidracerioProvider>
+      <div className="min-h-screen bg-slate-50">
+        <IdentidadeModal />
+        {children}
+      </div>
+    </VidracerioProvider>
   );
 }

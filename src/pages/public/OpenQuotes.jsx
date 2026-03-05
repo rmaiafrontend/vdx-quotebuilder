@@ -1,141 +1,90 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { entities } from '@/api/api';
-import { ArrowLeft, Bell, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowLeft, FileText, Plus, Inbox } from 'lucide-react';
 import QuoteCard from '@/components/quotes/QuoteCard';
+import PublicHeader from '@/components/public/PublicHeader';
+import { useCompanyTheme } from '@/hooks/useCompanyTheme';
+import { orcamentoToQuote } from '@/utils/statusUtils';
 
-// Mock data para Company
-const mockCompany = {
-  id: 'comp-1',
-  name: 'Vidraçaria Digital Express',
-  logo_url: null,
-  primary_color: '#1e88e5'
-};
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
 export default function OpenQuotes() {
   const navigate = useNavigate();
-  const [customer] = useState(() => {
-    const saved = localStorage.getItem('customer');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { company, primaryColor } = useCompanyTheme();
 
-  // Buscar orçamentos
   const { data: allOrcamentos = [] } = useQuery({
     queryKey: ['orcamentos'],
     queryFn: () => entities.Orcamento.list()
   });
 
-  // Usar dados mockados
-  const company = mockCompany;
-  
-  // Filtrar orçamentos em aberto (não finalizados)
-  // Orçamentos finalizados são: 'concluido' e 'cancelado'
   const openQuotes = allOrcamentos
     .filter(q => !['concluido', 'cancelado'].includes(q.status))
-    .map(orc => ({
-      id: orc.id,
-      quote_number: orc.numero,
-      quote_type_name: orc.tipologia_nome,
-      status: orc.status === 'rascunho' ? 'draft' :
-              orc.status === 'aguardando_aprovacao' ? 'pending' : 
-              orc.status === 'aguardando_pagamento' ? 'sent' : 
-              orc.status === 'em_producao' ? 'sent' : 
-              orc.status === 'aguardando_retirada' ? 'sent' : 'pending',
-      total_value: orc.preco_total,
-      created_date: orc.created_date,
-      customer_id: orc.cliente_email // Usar email como identificador temporário
-    }));
-
-  React.useEffect(() => {
-    if (company?.primary_color) {
-      localStorage.setItem('company_primary_color', company.primary_color);
-    }
-  }, [company?.primary_color]);
-
-  const primaryColor = company?.primary_color || localStorage.getItem('company_primary_color') || '#1e88e5';
+    .map(orcamentoToQuote);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header
-        className="px-5 py-4 flex items-center justify-between shadow-md"
-        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50">
+      <PublicHeader company={company} primaryColor={primaryColor} />
+
+      {/* Header section */}
+      <div
+        className="relative px-5 pt-5 pb-10 overflow-hidden"
+        style={{ background: `linear-gradient(160deg, ${primaryColor}12, ${primaryColor}06)` }}
       >
-        <div className="flex items-center gap-3">
-          {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-sm" />
-          ) : (
-            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/30">
-              <span className="font-bold text-lg text-white">
-                {company?.name?.charAt(0) || 'V'}
-              </span>
-            </div>
-          )}
-          <h1 className="text-white font-semibold text-lg tracking-tight">
-            {company?.name || 'Orçamentos'}
-          </h1>
-        </div>
-        <button className="relative p-2.5 hover:bg-white/15 rounded-xl transition-colors">
-          <Bell className="w-5 h-5 text-white/90" />
-        </button>
-      </header>
-
-      {/* Main Content */}
-      <div className="px-4 py-6 max-w-2xl mx-auto">
-        {/* Back */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-1.5 mb-5 text-sm font-medium hover:opacity-70 transition-opacity"
-          style={{ color: primaryColor }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Voltar</span>
-        </button>
-
-        {/* Title */}
-        <div className="mb-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-200/80">
+        <div className="max-w-2xl mx-auto">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 mb-4 text-sm font-medium hover:opacity-70 transition-opacity" style={{ color: primaryColor }}>
+            <ArrowLeft className="w-4 h-4" /><span>Voltar</span>
+          </button>
           <div className="flex items-center gap-4">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: `${primaryColor}12` }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${primaryColor}10)` }}
             >
               <FileText className="w-6 h-6" style={{ color: primaryColor }} />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Em Aberto</h2>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">Em Aberto</h2>
               <p className="text-sm text-slate-500 mt-0.5">
-                {openQuotes.length === 0
-                  ? 'Nenhum orçamento em aberto'
-                  : `${openQuotes.length} orçamento${openQuotes.length > 1 ? 's' : ''} em aberto`}
+                {openQuotes.length === 0 ? 'Nenhum orcamento em aberto' : `${openQuotes.length} orcamento${openQuotes.length > 1 ? 's' : ''} em andamento`}
               </p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* List */}
-        <div className="space-y-3">
-          {openQuotes.length === 0 ? (
-            <div className="p-10 text-center bg-white rounded-2xl shadow-sm border border-dashed border-slate-200">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-7 h-7 text-slate-400" />
-              </div>
-              <h3 className="font-semibold text-slate-700 mb-1">Nenhum orçamento em aberto</h3>
-              <p className="text-sm text-slate-500 mb-6">Seus orçamentos em andamento aparecerão aqui</p>
-              <button
-                onClick={() => navigate('/orcamento')}
-                className="text-white px-6 py-2.5 rounded-xl font-medium hover:brightness-110 transition-all active:scale-[0.98] shadow-md"
-                style={{ backgroundColor: primaryColor }}
-              >
-                Novo Orçamento
-              </button>
+      {/* Content */}
+      <div className="px-4 max-w-2xl mx-auto -mt-4 pb-8">
+        {openQuotes.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-10 text-center bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04]"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <Inbox className="w-8 h-8 text-slate-300" />
             </div>
-          ) : (
-            openQuotes.map((quote) => (
-              <QuoteCard key={quote.id} quote={quote} primaryColor={primaryColor} />
-            ))
-          )}
-        </div>
+            <h3 className="font-bold text-slate-800 mb-1.5">Nenhum orcamento em aberto</h3>
+            <p className="text-sm text-slate-500 mb-6">Seus orcamentos em andamento aparecerao aqui</p>
+            <button
+              onClick={() => navigate('/orcamento')}
+              className="inline-flex items-center gap-2 text-white px-6 py-2.5 rounded-xl font-semibold hover:brightness-110 transition-all active:scale-[0.98] shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
+            >
+              <Plus className="w-4 h-4" /> Novo Orcamento
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
+            {openQuotes.map((quote) => (
+              <motion.div key={quote.id} variants={item}>
+                <QuoteCard quote={quote} primaryColor={primaryColor} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
