@@ -90,7 +90,7 @@ export default function TiposVidroTab() {
               Características técnicas do vidro (espessura, tipo, cor) - sem preço
             </CardDescription>
           </div>
-          <Button onClick={abrirNovo} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={abrirNovo} className="bg-[#1a3a8f] hover:bg-[#152e73]">
             <Plus className="w-4 h-4 mr-2" />
             Novo Tipo
           </Button>

@@ -36,8 +36,8 @@ export default function ItemConfigModal({
         </DialogHeader>
         <div className="space-y-4 py-4">
           {categoriaNome && (
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-700">
+            <div className="p-3 bg-[#1a3a8f]/10 rounded-lg border border-[#1a3a8f]/20">
+              <p className="text-sm text-[#1a3a8f]">
                 <span className="font-medium">Categoria:</span> {categoriaNome}
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function ItemConfigModal({
                   </Button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-[#1a3a8f] transition-colors">
                   <Settings className="w-6 h-6 text-slate-400" />
                   <input
                     type="file"
@@ -125,7 +125,7 @@ export default function ItemConfigModal({
               !formState.tipo_configuracao_id ||
               isPending
             }
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#1a3a8f] hover:bg-[#152e73]"
           >
             <Save className="w-4 h-4 mr-2" />
             Salvar

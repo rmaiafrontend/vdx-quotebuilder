@@ -182,9 +182,9 @@ function PecaItem({
                                 </Button>
                             </div>
                         ) : (
-                            <label className="flex flex-col items-center justify-center w-full max-w-sm h-36 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
-                                <Image className="w-8 h-8 text-slate-300 mb-2 group-hover:text-blue-500 transition-colors" />
-                                <p className="text-xs font-medium text-slate-500 group-hover:text-blue-600">Clique para fazer upload</p>
+                            <label className="flex flex-col items-center justify-center w-full max-w-sm h-36 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-[#1a3a8f]/40 hover:bg-[#1a3a8f]/10/50 transition-all group">
+                                <Image className="w-8 h-8 text-slate-300 mb-2 group-hover:text-[#1a3a8f] transition-colors" />
+                                <p className="text-xs font-medium text-slate-500 group-hover:text-[#1a3a8f]">Clique para fazer upload</p>
                                 <input type="file" className="hidden" accept="image/*" onChange={(e) => onImagemUpload(e, index)} />
                             </label>
                         )}
@@ -295,8 +295,8 @@ function ConfiguracaoTecnicaItem({ config, pecaIndex, configIndex, categoriasCon
                             </div>
                         )}
                         {config.itens_ids?.length === 0 && itensDisponiveis.length > 0 && (
-                            <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-lg">
-                                <p className="text-[11px] text-blue-600 flex items-center gap-1.5">
+                            <div className="mt-2 p-2 bg-[#1a3a8f]/10 border border-[#1a3a8f]/15 rounded-lg">
+                                <p className="text-[11px] text-[#1a3a8f] flex items-center gap-1.5">
                                     <Info className="w-3 h-3 shrink-0" />
                                     Nenhum item selecionado = todos disponíveis na conferência
                                 </p>

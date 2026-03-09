@@ -85,7 +85,7 @@ export default function OrcamentoDetailDialog({
                   .sort((a, b) => new Date(b.date) - new Date(a.date))
                   .map((entry, index) => (
                     <div key={index} className="relative">
-                      <span className={`absolute -left-6 top-3 w-3 h-3 rounded-full border-2 border-white shadow-sm ${index === 0 ? "bg-blue-500" : "bg-slate-300"}`} />
+                      <span className={`absolute -left-6 top-3 w-3 h-3 rounded-full border-2 border-white shadow-sm ${index === 0 ? "bg-[#1a3a8f]" : "bg-slate-300"}`} />
                       <div className="bg-slate-50 rounded-xl p-3">
                         <p className="text-sm font-medium text-slate-900">{entry.action}</p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -146,7 +146,7 @@ export default function OrcamentoDetailDialog({
             </div>
           )}
 
-          <div className="bg-blue-50/70 rounded-2xl p-5 border border-blue-100">
+          <div className="bg-[#1a3a8f]/10/70 rounded-2xl p-5 border border-[#1a3a8f]/15">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-slate-600">Área Total (cobrança)</span>
               <span className="font-medium text-sm tabular-nums">
@@ -159,10 +159,10 @@ export default function OrcamentoDetailDialog({
                 R$ {orcamento.preco_m2?.toFixed(2)}
               </span>
             </div>
-            <div className="border-t border-blue-200/80 pt-3">
+            <div className="border-t border-[#1a3a8f]/20/80 pt-3">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-900">Total</span>
-                <span className="text-xl font-bold text-blue-700 tabular-nums">
+                <span className="text-xl font-bold text-[#1a3a8f] tabular-nums">
                   R${" "}
                   {orcamento.preco_total?.toLocaleString("pt-BR", {
                     minimumFractionDigits: 2,

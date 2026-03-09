@@ -40,10 +40,10 @@ const STATUS_CONFIG = {
   },
   sent: {
     label: 'Em Andamento',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    badgeBg: 'bg-blue-100 text-blue-700',
-    accentColor: '#3b82f6',
+    bgColor: 'bg-[#1a3a8f]/10',
+    textColor: 'text-[#1a3a8f]',
+    badgeBg: 'bg-[#1a3a8f]/15 text-[#1a3a8f]',
+    accentColor: '#1a3a8f',
     icon: Send
   },
   draft: {

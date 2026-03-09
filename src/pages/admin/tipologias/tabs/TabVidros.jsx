@@ -7,8 +7,8 @@ export default function TabVidros({ formData, setFormData, tiposVidroTecnicos, t
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
-                        <Palette className="w-4 h-4 text-indigo-600" />
+                    <div className="w-9 h-9 rounded-lg bg-[#2962cc]/15 flex items-center justify-center">
+                        <Palette className="w-4 h-4 text-[#1a3a8f]" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-slate-900">Tipos de Vidro</h3>
@@ -29,8 +29,8 @@ export default function TabVidros({ formData, setFormData, tiposVidroTecnicos, t
             </div>
 
             {/* Info banner */}
-            <div className="flex items-center gap-2 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                <div className={`w-2 h-2 rounded-full shrink-0 ${formData.tipos_vidro_ids?.length > 0 ? 'bg-indigo-500' : 'bg-slate-400'}`} />
+            <div className="flex items-center gap-2 p-3 bg-[#2962cc]/10/50 rounded-xl border border-[#2962cc]/15">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${formData.tipos_vidro_ids?.length > 0 ? 'bg-[#2962cc]/100' : 'bg-slate-400'}`} />
                 <p className="text-xs text-slate-600">
                     {formData.tipos_vidro_ids?.length > 0
                         ? `${formData.tipos_vidro_ids.length} tipo(s) selecionado(s) — apenas estes aparecerão no orçamento`
@@ -54,7 +54,7 @@ export default function TabVidros({ formData, setFormData, tiposVidroTecnicos, t
                                 onClick={() => toggleTipoVidro(vidro.id)}
                                 className={`relative flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
                                     selecionado
-                                        ? 'bg-indigo-50 border-indigo-300 shadow-sm ring-1 ring-indigo-200'
+                                        ? 'bg-[#2962cc]/10 border-[#2962cc]/30 shadow-sm ring-1 ring-[#2962cc]/20'
                                         : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
                                 }`}
                             >
@@ -65,7 +65,7 @@ export default function TabVidros({ formData, setFormData, tiposVidroTecnicos, t
                                 />
 
                                 <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-semibold truncate ${selecionado ? 'text-indigo-900' : 'text-slate-900'}`}>
+                                    <p className={`text-sm font-semibold truncate ${selecionado ? 'text-[#1a3a8f]' : 'text-slate-900'}`}>
                                         {vidro.nome}
                                     </p>
                                     <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
@@ -82,7 +82,7 @@ export default function TabVidros({ formData, setFormData, tiposVidroTecnicos, t
 
                                 {/* Check indicator */}
                                 {selecionado && (
-                                    <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center shrink-0">
+                                    <div className="w-6 h-6 rounded-full bg-[#1a3a8f] flex items-center justify-center shrink-0">
                                         <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                                     </div>
                                 )}

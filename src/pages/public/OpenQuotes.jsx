@@ -5,7 +5,6 @@ import { entities } from '@/api/api';
 import { motion } from 'framer-motion';
 import { ArrowLeft, FileText, Plus, Inbox } from 'lucide-react';
 import QuoteCard from '@/components/quotes/QuoteCard';
-import PublicHeader from '@/components/public/PublicHeader';
 import { useCompanyTheme } from '@/hooks/useCompanyTheme';
 import { orcamentoToQuote } from '@/utils/statusUtils';
 
@@ -14,7 +13,7 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 
 export default function OpenQuotes() {
   const navigate = useNavigate();
-  const { company, primaryColor } = useCompanyTheme();
+  const { primaryColor } = useCompanyTheme();
 
   const { data: allOrcamentos = [] } = useQuery({
     queryKey: ['vidraceiro-orcamentos'],
@@ -27,8 +26,6 @@ export default function OpenQuotes() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50">
-      <PublicHeader company={company} primaryColor={primaryColor} />
-
       {/* Header section */}
       <div
         className="relative px-5 pt-5 pb-10 overflow-hidden"

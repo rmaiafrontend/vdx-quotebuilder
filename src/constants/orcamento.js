@@ -19,7 +19,7 @@ export const STATUS_CONFIG = {
     color: "bg-orange-100 text-orange-700",
     icon: CreditCard,
   },
-  EM_PRODUCAO: { label: "Em Produção", color: "bg-blue-100 text-blue-700", icon: Truck },
+  EM_PRODUCAO: { label: "Em Produção", color: "bg-[#1a3a8f]/15 text-[#1a3a8f]", icon: Truck },
   AGUARDANDO_RETIRADA: {
     label: "Pronto para Retirada",
     color: "bg-green-100 text-green-700",
@@ -33,7 +33,6 @@ export const ETAPAS_PUBLICO = [
   { id: 2, nome: "Tipologia + Medidas", icone: Calculator },
   { id: 3, nome: "Conferência", icone: Check },
   { id: 4, nome: "Acessórios", icone: Plus },
-  { id: 5, nome: "Finalizar", icone: CheckCircle2 },
 ];
 
 export const ETAPAS_ADMIN = [

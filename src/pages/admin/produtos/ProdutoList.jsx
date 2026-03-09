@@ -63,7 +63,7 @@ export default function ProdutoList({
               <CardContent className="p-4">
                 <div className="flex items-center gap-1.5 flex-wrap mb-2">
                   {categoria && (
-                    <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] bg-[#1a3a8f]/10 text-[#1a3a8f] px-2 py-0.5 rounded-full font-medium">
                       {categoria.nome}
                     </span>
                   )}

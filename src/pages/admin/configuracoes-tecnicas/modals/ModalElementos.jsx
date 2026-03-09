@@ -43,7 +43,7 @@ export default function ModalElementos({
                   onAddElemento(categoria.id);
                   onOpenChange(false);
                 }}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-[#1a3a8f] hover:bg-[#152e73]"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Elemento
@@ -66,7 +66,7 @@ export default function ModalElementos({
                     onAddElemento(categoria.id);
                     onOpenChange(false);
                   }}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[#1a3a8f] hover:bg-[#152e73]"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Primeiro Elemento

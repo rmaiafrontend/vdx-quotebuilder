@@ -173,7 +173,7 @@ export default function Tipologias() {
           </div>
           <Button
             onClick={abrirNovaTipologia}
-            className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 h-10 px-5 font-medium shrink-0"
+            className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl shadow-md shadow-[#1a3a8f]/20 h-10 px-5 font-medium shrink-0"
           >
             <Plus className="w-4 h-4 mr-2" /> Nova Tipologia
           </Button>

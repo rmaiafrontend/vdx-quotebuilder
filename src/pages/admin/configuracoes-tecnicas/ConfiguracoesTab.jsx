@@ -193,7 +193,7 @@ export default function ConfiguracoesTab() {
             Gerencie categorias e seus elementos de configuração técnica
           </p>
         </div>
-        <Button onClick={abrirNovoTipoConfig} className="bg-blue-600 hover:bg-blue-700 shadow-sm">
+        <Button onClick={abrirNovoTipoConfig} className="bg-[#1a3a8f] hover:bg-[#152e73] shadow-sm">
           <Plus className="w-4 h-4 mr-2" />
           Nova Categoria
         </Button>
@@ -224,7 +224,7 @@ export default function ConfiguracoesTab() {
               <p className="text-sm text-slate-500 mb-6">
                 Comece criando sua primeira categoria de configuração técnica
               </p>
-              <Button onClick={abrirNovoTipoConfig} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={abrirNovoTipoConfig} className="bg-[#1a3a8f] hover:bg-[#152e73]">
                 <Plus className="w-4 h-4 mr-2" />
                 Criar Primeira Categoria
               </Button>
@@ -245,7 +245,7 @@ export default function ConfiguracoesTab() {
                 transition={{ delay: i * 0.05 }}
               >
                 <Card
-                  className={`group h-full flex flex-col transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer border-2 hover:border-blue-300 ${!tipoConfig.ativo ? "opacity-60 border-slate-200" : "border-slate-200"}`}
+                  className={`group h-full flex flex-col transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer border-2 hover:border-[#1a3a8f]/50 ${!tipoConfig.ativo ? "opacity-60 border-slate-200" : "border-slate-200"}`}
                   onClick={() => {
                     setCategoriaVisualizando(tipoConfig);
                     setModalElementosOpen(true);
@@ -285,7 +285,7 @@ export default function ConfiguracoesTab() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 hover:bg-blue-50 hover:text-blue-600"
+                          className="h-7 w-7 hover:bg-[#1a3a8f]/10 hover:text-[#1a3a8f]"
                           onClick={(e) => {
                             e.stopPropagation();
                             abrirEdicaoTipoConfig(tipoConfig);
@@ -316,7 +316,7 @@ export default function ConfiguracoesTab() {
                           Clique para visualizar
                         </p>
                       </div>
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1a3a8f] to-[#2962cc] flex items-center justify-center shadow-sm">
                         <Plus className="w-4 h-4 text-white" />
                       </div>
                     </div>

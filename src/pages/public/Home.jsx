@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { entities } from '@/api/api';
 import { motion } from 'framer-motion';
-import { Plus, FileText, Clock, MessageCircle, ChevronRight, LogOut, Bell } from 'lucide-react';
-import PublicHeader from '@/components/public/PublicHeader';
+import { Plus, FileText, Clock, MessageCircle, ChevronRight, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useCompanyTheme } from '@/hooks/useCompanyTheme';
 import { useVidraceiro } from '@/lib/VidracerioContext';
 
@@ -14,7 +15,7 @@ const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transiti
 export default function Home() {
   const navigate = useNavigate();
   const { company, primaryColor } = useCompanyTheme();
-  const { vidraceiro, logout } = useVidraceiro();
+  const { vidraceiro } = useVidraceiro();
 
   const { data: allOrcamentos = [] } = useQuery({
     queryKey: ['vidraceiro-orcamentos'],
@@ -31,37 +32,53 @@ export default function Home() {
     return 'Boa noite';
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  const headerRightSlot = (
-    <>
-      <button className="relative p-2.5 hover:bg-white/15 rounded-xl transition-colors" onClick={() => navigate('/admin/dashboard')}>
-        <Bell className="w-5 h-5 text-white/90" />
-        {openQuotesCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-400 rounded-full ring-2 ring-white/30 animate-pulse" />}
-      </button>
-      <button onClick={handleLogout} className="p-2.5 hover:bg-white/15 rounded-xl transition-colors">
-        <LogOut className="w-5 h-5 text-white/90" />
-      </button>
-    </>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50">
-      <PublicHeader company={company} primaryColor={primaryColor} rightSlot={headerRightSlot} />
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-[#1a3a8f] via-[#1e4ba3] to-[#2962cc] pb-20">
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/10 to-transparent" />
 
-      {/* Hero Section */}
-      <div
-        className="relative px-5 pt-6 pb-16 overflow-hidden"
-        style={{ background: `linear-gradient(160deg, ${primaryColor}, ${primaryColor}dd)` }}
-      >
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-60" />
-        <div className="relative max-w-2xl mx-auto">
-          <p className="text-white/70 text-sm font-medium">{getGreeting()}</p>
-          <h2 className="text-2xl font-bold text-white tracking-tight mt-1">
-            {vidraceiro?.name?.split(' ')[0] || 'Bem-vindo'}
+        {/* Floating header */}
+        <div className="sticky top-0 z-30 px-4 pt-3">
+          <header className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg shadow-black/[0.08] ring-1 ring-black/[0.06] px-4 py-2.5 flex items-center justify-between max-w-2xl mx-auto">
+            <div className="flex items-center">
+              {company?.logo_url ? (
+                <img src={company.logo_url} alt={company.name} className="h-7 w-auto object-contain" />
+              ) : (
+                <h1 className="font-bold text-lg text-slate-900 tracking-tight">{company?.name || 'Vidros Express'}</h1>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center ring-2 ring-white shadow-sm"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
+              >
+                <span className="text-white font-bold text-xs">
+                  {vidraceiro?.name?.charAt(0)?.toUpperCase() || 'V'}
+                </span>
+              </div>
+            </div>
+          </header>
+        </div>
+
+        {/* Greeting */}
+        <div className="relative px-5 pt-5 pb-2 max-w-2xl mx-auto">
+          <p className="text-white/40 text-xs font-medium tracking-wider uppercase mb-3 flex items-center gap-1.5">
+            <CalendarDays className="w-3.5 h-3.5" />
+            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+          </p>
+          <h2 className="text-[26px] font-extrabold text-white tracking-tight leading-tight">
+            {getGreeting()},{' '}
+            <span className="text-white/90">{vidraceiro?.name?.split(' ')[0] || 'Bem-vindo'}</span>
           </h2>
+          <p className="text-white/50 text-sm mt-1.5">
+            {allOrcamentos.length === 0
+              ? 'Comece solicitando seu primeiro orçamento.'
+              : openQuotesCount > 0
+                ? `Você tem ${openQuotesCount} orçamento${openQuotesCount > 1 ? 's' : ''} em andamento.`
+                : 'Todos os seus orçamentos estão em dia.'}
+          </p>
         </div>
       </div>
 
@@ -70,7 +87,7 @@ export default function Home() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="relative z-10 px-4 max-w-2xl mx-auto -mt-12 pb-8 space-y-4"
+        className="relative z-10 px-4 max-w-2xl mx-auto -mt-14 pb-8 space-y-4"
       >
         {/* CTA - Novo Orcamento */}
         <motion.button
@@ -79,21 +96,15 @@ export default function Home() {
           onClick={() => navigate('/orcamento')}
         >
           <div className="flex items-center gap-4">
-            <div
-              className="w-13 h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
-            >
+            <div className="w-13 h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-lg bg-gradient-to-br from-[#e8751a] to-[#d4650f]">
               <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-base text-slate-900">Novo Orcamento</h3>
-              <p className="text-slate-500 text-sm mt-0.5">Solicitar nova cotacao</p>
+              <h3 className="font-bold text-base text-slate-900">Novo Orçamento</h3>
+              <p className="text-slate-500 text-sm mt-0.5">Solicitar nova cotação</p>
             </div>
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: `${primaryColor}10` }}
-            >
-              <ChevronRight className="w-4 h-4" style={{ color: primaryColor }} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-[#e8751a]/10">
+              <ChevronRight className="w-4 h-4 text-[#e8751a]" />
             </div>
           </div>
         </motion.button>
@@ -105,19 +116,13 @@ export default function Home() {
             className="relative p-4 rounded-2xl bg-white text-left transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.98] shadow-md ring-1 ring-black/[0.04] overflow-hidden"
             onClick={() => navigate('/em-aberto')}
           >
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}88)` }} />
+            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-[#1a3a8f] to-[#2962cc]" />
             <div className="flex items-center justify-between mb-3 mt-1">
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
-                style={{ background: `linear-gradient(135deg, ${primaryColor}18, ${primaryColor}08)` }}
-              >
-                <FileText className="w-5 h-5" style={{ color: primaryColor }} />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm bg-[#1a3a8f]/8">
+                <FileText className="w-5 h-5 text-[#1a3a8f]" />
               </div>
               {openQuotesCount > 0 && (
-                <span
-                  className="min-w-[26px] h-6 px-2 rounded-full text-white text-xs font-bold flex items-center justify-center shadow-sm"
-                  style={{ backgroundColor: primaryColor }}
-                >
+                <span className="min-w-[26px] h-6 px-2 rounded-full text-white text-xs font-bold flex items-center justify-center shadow-sm bg-[#1a3a8f]">
                   {openQuotesCount}
                 </span>
               )}
@@ -142,7 +147,7 @@ export default function Home() {
                 </span>
               )}
             </div>
-            <h3 className="text-slate-900 font-semibold text-sm">Historico</h3>
+            <h3 className="text-slate-900 font-semibold text-sm">Histórico</h3>
             <p className="text-slate-400 text-xs mt-0.5">Finalizados</p>
           </motion.button>
         </div>

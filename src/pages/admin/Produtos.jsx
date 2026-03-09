@@ -190,7 +190,7 @@ export default function Produtos() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button onClick={abrirNovoProduto} className="bg-blue-600 hover:bg-blue-700 rounded-xl h-9 text-sm">
+                <Button onClick={abrirNovoProduto} className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl h-9 text-sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Produto
                 </Button>
@@ -238,7 +238,7 @@ export default function Produtos() {
                   Gerencie as categorias dos produtos comercializáveis
                 </CardDescription>
               </div>
-              <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700 rounded-xl h-9 text-sm shrink-0">
+              <Button onClick={abrirNovaCategoria} className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl h-9 text-sm shrink-0">
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Categoria
               </Button>

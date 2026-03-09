@@ -42,7 +42,7 @@ export default function TipologiaList({
         <p className="text-sm text-slate-500 mb-6 text-center max-w-sm">
           Crie sua primeira tipologia para configurar modelos de produtos com fórmulas de cálculo
         </p>
-        <Button onClick={onNew} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 h-10 px-5 font-medium">
+        <Button onClick={onNew} className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl shadow-md shadow-[#1a3a8f]/20 h-10 px-5 font-medium">
           <Plus className="w-4 h-4 mr-2" />
           Criar tipologia
         </Button>
@@ -65,7 +65,7 @@ export default function TipologiaList({
           onClick={() => onEdit(tipologia)}
         >
           {/* Image area */}
-          <div className="relative h-36 bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50 overflow-hidden">
+          <div className="relative h-36 bg-gradient-to-br from-slate-50 via-slate-100 to-[#1a3a8f]/10 overflow-hidden">
             {tipologia.imagens?.[0] ? (
               <img
                 src={tipologia.imagens[0]}
@@ -124,7 +124,7 @@ export default function TipologiaList({
 
             {/* Stat badges */}
             <div className="flex flex-wrap items-center gap-1.5 mt-auto pt-3 border-t border-slate-100">
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#1a3a8f] bg-[#1a3a8f]/10 px-2 py-1 rounded-md">
                 <Variable className="w-3 h-3" />
                 {tipologia.variaveis?.length || 0}
               </span>
@@ -133,7 +133,7 @@ export default function TipologiaList({
                 {tipologia.pecas?.length || 0}
               </span>
               {tipologia.tipos_vidro_ids?.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md">
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#1a3a8f] bg-[#2962cc]/10 px-2 py-1 rounded-md">
                   <Palette className="w-3 h-3" />
                   {tipologia.tipos_vidro_ids.length}
                 </span>

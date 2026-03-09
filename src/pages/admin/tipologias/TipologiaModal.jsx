@@ -14,9 +14,9 @@ import TabAcessorios from './tabs/TabAcessorios';
 
 const TAB_CONFIG = [
     { value: 'basicas', label: 'Básicas', icon: Info, countKey: null, badgeColor: 'bg-slate-600' },
-    { value: 'variaveis', label: 'Variáveis', icon: Variable, countKey: 'variaveis', badgeColor: 'bg-blue-600' },
+    { value: 'variaveis', label: 'Variáveis', icon: Variable, countKey: 'variaveis', badgeColor: 'bg-[#1a3a8f]' },
     { value: 'pecas', label: 'Peças', icon: Calculator, countKey: 'pecas', badgeColor: 'bg-green-600' },
-    { value: 'vidros', label: 'Vidros', icon: Palette, countKey: 'tipos_vidro_ids', badgeColor: 'bg-indigo-600' },
+    { value: 'vidros', label: 'Vidros', icon: Palette, countKey: 'tipos_vidro_ids', badgeColor: 'bg-[#1a3a8f]' },
     { value: 'acessorios', label: 'Acessórios', icon: Package, countKey: 'acessorio_ids', badgeColor: 'bg-purple-600' },
 ];
 
@@ -36,13 +36,13 @@ export default function TipologiaModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent hideClose className="max-w-5xl max-h-[95vh] flex flex-col p-0 rounded-2xl overflow-hidden">
                 {/* Header with gradient */}
-                <DialogHeader className="relative px-6 pt-6 pb-5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white">
+                <DialogHeader className="relative px-6 pt-6 pb-5 bg-gradient-to-br from-[#1a3a8f] via-[#1a3a8f] to-[#2962cc] text-white">
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
                     <div className="relative">
                         <DialogTitle className="text-xl font-bold tracking-tight text-white">
                             {editando ? 'Editar Tipologia' : 'Nova Tipologia'}
                         </DialogTitle>
-                        <p className="text-sm text-blue-100 mt-1">
+                        <p className="text-sm text-white/70 mt-1">
                             Configure todas as informações da tipologia
                         </p>
                     </div>
@@ -66,7 +66,7 @@ export default function TipologiaModal({
                                     <TabsTrigger
                                         key={tab.value}
                                         value={tab.value}
-                                        className="relative flex items-center gap-1.5 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700 data-[state=active]:font-semibold rounded-lg transition-all text-xs font-medium text-slate-600"
+                                        className="relative flex items-center gap-1.5 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#1a3a8f] data-[state=active]:font-semibold rounded-lg transition-all text-xs font-medium text-slate-600"
                                     >
                                         <tab.icon className="w-3.5 h-3.5" />
                                         <span className="hidden sm:inline">{tab.label}</span>
@@ -142,7 +142,7 @@ export default function TipologiaModal({
                     <Button
                         onClick={onSave}
                         disabled={!formData.nome || isSaving}
-                        className="bg-blue-600 hover:bg-blue-700 h-10 px-6 rounded-xl font-semibold shadow-md shadow-blue-500/20"
+                        className="bg-[#1a3a8f] hover:bg-[#152e73] h-10 px-6 rounded-xl font-semibold shadow-md shadow-[#1a3a8f]/20"
                     >
                         <Save className="w-4 h-4 mr-2" />
                         {isSaving ? 'Salvando...' : 'Salvar Tipologia'}

@@ -153,7 +153,7 @@ export default function ProdutoModal({
                   </Button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-[#1a3a8f] transition-colors">
                   <Package className="w-6 h-6 text-slate-400" />
                   <input
                     type="file"
@@ -215,7 +215,7 @@ export default function ProdutoModal({
               !formState.categoria_id ||
               isPending
             }
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#1a3a8f] hover:bg-[#152e73]"
           >
             <Save className="w-4 h-4 mr-2" />
             Salvar

@@ -6,7 +6,7 @@ const VARIANT_STYLES = {
   default: {
     container: "bg-white border-slate-200 text-slate-900",
     icon: Info,
-    iconClass: "text-blue-500",
+    iconClass: "text-[#1a3a8f]",
   },
   success: {
     container: "bg-white border-emerald-200 text-slate-900",

@@ -97,7 +97,7 @@ export default function Categorias() {
         title="Categorias"
         description="Organize suas tipologias em categorias"
         action={
-          <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={abrirNovaCategoria} className="bg-[#1a3a8f] hover:bg-[#152e73]">
             <Plus className="w-4 h-4 mr-2" />
             Nova Categoria
           </Button>
@@ -117,7 +117,7 @@ export default function Categorias() {
           </div>
           <h3 className="font-semibold text-slate-700 mb-1">Nenhuma categoria</h3>
           <p className="text-sm text-slate-500 mb-5">Crie a primeira para organizar suas tipologias</p>
-          <Button onClick={abrirNovaCategoria} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20">
+          <Button onClick={abrirNovaCategoria} className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl shadow-md shadow-[#1a3a8f]/20">
             <Plus className="w-4 h-4 mr-2" />
             Criar categoria
           </Button>
@@ -146,8 +146,8 @@ export default function Categorias() {
                         />
                       </div>
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center shrink-0 ring-1 ring-blue-200/50">
-                        <span className="text-xl font-bold text-blue-600">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1a3a8f]/10 to-[#2962cc]/15 flex items-center justify-center shrink-0 ring-1 ring-[#1a3a8f]/15">
+                        <span className="text-xl font-bold text-[#1a3a8f]">
                           {categoria.nome?.charAt(0)}
                         </span>
                       </div>
@@ -230,7 +230,7 @@ export default function Categorias() {
                     </Button>
                   </div>
                 ) : (
-                  <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-[#1a3a8f] transition-colors">
                     <Image className="w-6 h-6 text-slate-400" />
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
                   </label>
@@ -252,7 +252,7 @@ export default function Categorias() {
             <Button
               onClick={salvar}
               disabled={!formState.nome || createMutation.isPending || updateMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#1a3a8f] hover:bg-[#152e73]"
             >
               <Save className="w-4 h-4 mr-2" />
               Salvar

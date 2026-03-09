@@ -17,8 +17,8 @@ export default function TabBasicas({
             {/* Section: Info */}
             <div className="rounded-xl bg-white border border-slate-200/80 p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Info className="w-4 h-4 text-blue-600" />
+                    <div className="w-9 h-9 rounded-lg bg-[#1a3a8f]/15 flex items-center justify-center">
+                        <Info className="w-4 h-4 text-[#1a3a8f]" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-slate-900">Informações Principais</h3>
@@ -129,9 +129,9 @@ export default function TabBasicas({
                             </Button>
                         </div>
                     ))}
-                    <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group">
-                        <Image className="w-7 h-7 text-slate-300 mb-1.5 group-hover:text-blue-500 transition-colors" />
-                        <p className="text-[11px] font-medium text-slate-400 group-hover:text-blue-600 transition-colors">Adicionar</p>
+                    <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-[#1a3a8f]/40 hover:bg-[#1a3a8f]/10/50 transition-all group">
+                        <Image className="w-7 h-7 text-slate-300 mb-1.5 group-hover:text-[#1a3a8f] transition-colors" />
+                        <p className="text-[11px] font-medium text-slate-400 group-hover:text-[#1a3a8f] transition-colors">Adicionar</p>
                         <input type="file" className="hidden" accept="image/*" onChange={onFileUpload} />
                     </label>
                 </div>

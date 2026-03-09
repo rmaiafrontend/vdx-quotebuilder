@@ -39,7 +39,7 @@ export default function CategoriaProdutoList({
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: i * 0.03 }}
-          className={`group flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all ${!categoria.ativo ? "opacity-60" : ""}`}
+          className={`group flex items-center gap-4 p-4 bg-white rounded-lg border border-slate-200 hover:border-[#1a3a8f]/50 hover:shadow-sm transition-all ${!categoria.ativo ? "opacity-60" : ""}`}
         >
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">

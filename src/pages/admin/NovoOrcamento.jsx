@@ -96,9 +96,9 @@ export default function NovoOrcamento() {
           <div className="flex items-center justify-between">
             {ETAPAS_ADMIN.map((etapa, i) => (
               <React.Fragment key={etapa.id}>
-                <div className={`flex items-center gap-2 ${etapaAtual >= etapa.id ? 'text-blue-600' : 'text-slate-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${etapaAtual > etapa.id ? 'bg-blue-600 text-white'
-                      : etapaAtual === etapa.id ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-600'
+                <div className={`flex items-center gap-2 ${etapaAtual >= etapa.id ? 'text-[#1a3a8f]' : 'text-slate-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${etapaAtual > etapa.id ? 'bg-[#1a3a8f] text-white'
+                      : etapaAtual === etapa.id ? 'bg-[#1a3a8f]/15 text-[#1a3a8f] ring-2 ring-[#1a3a8f]'
                         : 'bg-slate-100 text-slate-400'
                     }`}>
                     {etapaAtual > etapa.id ? <Check className="w-4 h-4" /> : etapa.id}
@@ -106,7 +106,7 @@ export default function NovoOrcamento() {
                   <span className="hidden sm:block text-sm font-medium">{etapa.nome}</span>
                 </div>
                 {i < ETAPAS_ADMIN.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 ${etapaAtual > etapa.id ? 'bg-blue-600' : 'bg-slate-200'}`} />
+                  <div className={`flex-1 h-0.5 mx-2 ${etapaAtual > etapa.id ? 'bg-[#1a3a8f]' : 'bg-slate-200'}`} />
                 )}
               </React.Fragment>
             ))}
@@ -168,25 +168,25 @@ export default function NovoOrcamento() {
                       <Loader2 className="w-4 h-4 animate-spin" /> Carregando dados da tipologia...
                     </div>
                   )}
-                  <Card className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <Card className="mb-6 bg-gradient-to-br from-[#1a3a8f]/10 to-[#2962cc]/10 border-[#1a3a8f]/20">
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex flex-row items-start gap-4">
-                        <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-blue-200">
+                        <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-[#1a3a8f]/20">
                           {tipologiaSelecionada.imagens?.[0] ? (
                             <img src={tipologiaSelecionada.imagens[0]} alt={tipologiaSelecionada.nome} className="max-w-full max-h-full object-contain" />
                           ) : (
-                            <Layers className="w-12 h-12 text-blue-300" />
+                            <Layers className="w-12 h-12 text-[#1a3a8f]/50" />
                           )}
                         </div>
                         <div className="flex-1">
                           <h3 className="text-xl font-bold text-slate-900 mb-1">{tipologiaSelecionada.nome}</h3>
                           <p className="text-slate-600 text-sm mb-3">{tipologiaSelecionada.descricao}</p>
                           <div className="flex gap-4 text-sm">
-                            <div className="flex items-center gap-1 text-blue-700">
+                            <div className="flex items-center gap-1 text-[#1a3a8f]">
                               <Square className="w-4 h-4" />
                               <span className="font-medium">{tipologiaSelecionada.pecas?.length || 0} peças</span>
                             </div>
-                            <div className="flex items-center gap-1 text-blue-700">
+                            <div className="flex items-center gap-1 text-[#1a3a8f]">
                               <Calculator className="w-4 h-4" />
                               <span className="font-medium">{tipologiaSelecionada.variaveis?.length || 0} variáveis</span>
                             </div>
@@ -238,7 +238,7 @@ export default function NovoOrcamento() {
                               <div
                                 key={tipo.id}
                                 onClick={() => setTipoVidroSelecionado(tipo)}
-                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${tipoVidroSelecionado?.id === tipo.id ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${tipoVidroSelecionado?.id === tipo.id ? 'border-[#1a3a8f] bg-[#1a3a8f]/10 shadow-md' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                                   }`}
                               >
                                 <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export default function NovoOrcamento() {
                       </Card>
                     )}
 
-                    <Button onClick={() => executarCalculo(3)} disabled={!podeAvancar()} className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-lg font-medium">
+                    <Button onClick={() => executarCalculo(3)} disabled={!podeAvancar()} className="w-full h-14 bg-[#1a3a8f] hover:bg-[#152e73] text-lg font-medium">
                       Calcular Peças e Continuar <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </div>
@@ -325,7 +325,7 @@ export default function NovoOrcamento() {
                     <div className="border-t border-slate-200 pt-3 mt-4">
                       <div className="flex items-center justify-between text-lg font-bold">
                         <span>Área Total</span>
-                        <span className="text-blue-600">{totais.areaTotalCobrancaM2?.toFixed(3)} m²</span>
+                        <span className="text-[#1a3a8f]">{totais.areaTotalCobrancaM2?.toFixed(3)} m²</span>
                       </div>
                     </div>
                   </CardContent>
@@ -333,19 +333,19 @@ export default function NovoOrcamento() {
 
                 <div className="space-y-6">
                   {tipoVidroSelecionado && (
-                    <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                    <Card className="bg-gradient-to-br from-[#1a3a8f] to-[#152e73] text-white">
                       <CardContent className="p-6">
                         <div className="mb-2">
                           <div className="flex items-center gap-2 mb-1">
                             <div className="w-6 h-6 rounded border-2 border-white" style={{ backgroundColor: tipoVidroSelecionado.cor || '#e2e8f0' }} />
                             <span className="text-white font-medium">{tipoVidroSelecionado.nome}</span>
                           </div>
-                          <p className="text-blue-100 text-sm">
+                          <p className="text-white/70 text-sm">
                             {totais.areaTotalCobrancaM2?.toFixed(2)} m² × R$ {tipoVidroSelecionado.preco_m2?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/m²
                           </p>
                         </div>
-                        <div className="border-t border-blue-400 pt-3 mt-3">
-                          <p className="text-blue-100 text-sm mb-1">Preço Final</p>
+                        <div className="border-t border-[#1a3a8f]/40 pt-3 mt-3">
+                          <p className="text-white/70 text-sm mb-1">Preço Final</p>
                           <p className="text-4xl font-bold">
                             R$ {precoFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </p>

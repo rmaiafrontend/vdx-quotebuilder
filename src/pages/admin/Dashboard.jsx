@@ -43,7 +43,7 @@ const formatDate = () => {
 const STATUS_CONFIG = {
   AGUARDANDO_APROVACAO: { label: "Aguardando Aprovação", color: "bg-amber-100 text-amber-700", chartColor: "#f59e0b" },
   AGUARDANDO_PAGAMENTO: { label: "Aguardando Pagamento", color: "bg-orange-100 text-orange-700", chartColor: "#f97316" },
-  EM_PRODUCAO: { label: "Em Produção", color: "bg-blue-100 text-blue-700", chartColor: "#3b82f6" },
+  EM_PRODUCAO: { label: "Em Produção", color: "bg-[#1a3a8f]/15 text-[#1a3a8f]", chartColor: "#1a3a8f" },
   AGUARDANDO_RETIRADA: { label: "Pronto", color: "bg-green-100 text-green-700", chartColor: "#22c55e" },
   CANCELADO: { label: "Cancelado", color: "bg-red-100 text-red-700", chartColor: "#ef4444" },
 };
@@ -53,9 +53,9 @@ const STAT_CARDS = [
     key: "total",
     label: "Total Orçamentos",
     icon: FileText,
-    gradient: "from-blue-500 to-blue-600",
-    bg: "bg-blue-500/10",
-    text: "text-blue-600",
+    gradient: "from-[#1a3a8f] to-[#2962cc]",
+    bg: "bg-[#1a3a8f]/10",
+    text: "text-[#1a3a8f]",
   },
   {
     key: "emAndamento",
@@ -106,8 +106,8 @@ const QUICK_ACTIONS = [
     description: "Gerenciar categorias de produtos",
     icon: FileText,
     to: "/admin/categorias",
-    gradient: "from-blue-600 to-indigo-600",
-    shadow: "shadow-blue-500/25",
+    gradient: "from-[#1a3a8f] to-[#2962cc]",
+    shadow: "shadow-[#1a3a8f]/25",
   },
 ];
 
@@ -198,20 +198,20 @@ export default function Dashboard() {
     >
       {/* Welcome Banner */}
       <motion.div variants={item}>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 p-6 sm:p-8 text-white">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a3a8f] via-[#1a3a8f] to-[#2962cc] p-6 sm:p-8 text-white">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-2xl" />
           <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
 
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-blue-100 text-sm font-medium mb-1">
+              <p className="text-white/70 text-sm font-medium mb-1">
                 {formatDate().replace(/^./, (c) => c.toUpperCase())}
               </p>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
                 {getGreeting()} 👋
               </h1>
-              <p className="text-blue-100 mt-1.5 text-sm sm:text-base">
+              <p className="text-white/70 mt-1.5 text-sm sm:text-base">
                 {stats.emAndamento > 0
                   ? `Você tem ${stats.emAndamento} orçamento${stats.emAndamento > 1 ? "s" : ""} em andamento`
                   : "Todos os orçamentos estão em dia"}
@@ -220,7 +220,7 @@ export default function Dashboard() {
             <Link to="/admin/tipologias" className="shrink-0">
               <Button
                 size="lg"
-                className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg shadow-blue-900/20 font-semibold rounded-xl h-11 px-5"
+                className="bg-white text-[#1a3a8f] hover:bg-[#1a3a8f]/10 shadow-lg shadow-[#1a3a8f]/20 font-semibold rounded-xl h-11 px-5"
               >
                 <Package className="w-4 h-4 mr-2" />
                 Tipologias
@@ -340,17 +340,17 @@ export default function Dashboard() {
               ))}
 
               {/* Tipologias ativas info */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200/60">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-[#1a3a8f]/10/50 border border-slate-200/60">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 rounded-lg bg-[#1a3a8f]/15 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-[#1a3a8f]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-slate-700">Tipologias Ativas</p>
                     <p className="text-xs text-slate-500">Modelos disponíveis no sistema</p>
                   </div>
                 </div>
-                <span className="text-2xl font-bold text-blue-600 tabular-nums">{tipologias.length}</span>
+                <span className="text-2xl font-bold text-[#1a3a8f] tabular-nums">{tipologias.length}</span>
               </div>
             </CardContent>
           </Card>
@@ -369,7 +369,7 @@ export default function Dashboard() {
             </div>
             {orcamentos.length > 5 && (
               <Link to="/admin/orcamentos">
-                <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs font-medium">
+                <Button variant="ghost" size="sm" className="text-[#1a3a8f] hover:text-[#1a3a8f] hover:bg-[#1a3a8f]/10 text-xs font-medium">
                   Ver todos
                   <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </Button>

@@ -32,10 +32,7 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25 mb-4">
-            <span className="text-white font-bold text-2xl">V</span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">VDX Admin</h1>
+          <img src="/vdx-logo.png" alt="Vidros Express" className="h-20 w-auto object-contain mx-auto mb-4" />
           <p className="text-sm text-slate-500 mt-1">Acesse o painel administrativo</p>
         </div>
 
@@ -71,7 +68,7 @@ export default function Login() {
             />
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-11">
+          <Button type="submit" disabled={loading} className="w-full bg-[#1a3a8f] hover:bg-[#152e73] h-11">
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (

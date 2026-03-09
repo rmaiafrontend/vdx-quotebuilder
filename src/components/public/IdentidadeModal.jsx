@@ -54,39 +54,29 @@ export default function IdentidadeModal() {
         <DialogPrimitive.Content
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          className="fixed left-[50%] top-[50%] z-50 w-full max-w-[420px] translate-x-[-50%] translate-y-[-50%] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] duration-300"
+          className="fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-[420px] translate-x-[-50%] translate-y-[-50%] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] duration-300"
         >
           <div className="rounded-3xl bg-white shadow-2xl ring-1 ring-black/[0.06] overflow-hidden">
-            {/* Header com gradiente */}
-            <div
-              className="relative px-6 pt-8 pb-6 overflow-hidden"
-              style={{ background: `linear-gradient(160deg, ${primaryColor}, ${primaryColor}cc)` }}
-            >
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-60" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  {company?.logo_url ? (
-                    <img
-                      src={company.logo_url}
-                      alt={company.name}
-                      className="w-10 h-10 rounded-xl bg-white p-1 object-cover shadow-md ring-2 ring-white/30"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 shadow-md">
-                      <span className="font-bold text-lg text-white">
-                        {company?.name?.charAt(0) || 'V'}
-                      </span>
-                    </div>
-                  )}
-                  <span className="text-white/80 text-sm font-medium">{company?.name || 'Vidraçaria'}</span>
-                </div>
-                <h2 className="text-xl font-bold text-white tracking-tight">
-                  Confirme sua identidade
-                </h2>
-                <p className="text-white/70 text-sm mt-1">
-                  Preencha seus dados para acessar seus orçamentos.
-                </p>
+            {/* Header */}
+            <div className="relative px-6 pt-8 pb-6 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1a3a8f] via-[#2962cc] to-[#e8751a]" />
+              <div className="flex items-center mb-4">
+                {company?.logo_url ? (
+                  <img
+                    src={company.logo_url}
+                    alt={company.name}
+                    className="h-10 w-auto object-contain"
+                  />
+                ) : (
+                  <span className="font-bold text-lg text-slate-900">{company?.name || 'Vidraçaria'}</span>
+                )}
               </div>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                Confirme sua identidade
+              </h2>
+              <p className="text-slate-500 text-sm mt-1">
+                Preencha seus dados para acessar seus orçamentos.
+              </p>
             </div>
 
             {/* Form */}
@@ -224,8 +214,7 @@ export default function IdentidadeModal() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
+                  className="w-full h-12 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed bg-gradient-to-r from-[#1a3a8f] to-[#2962cc]"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

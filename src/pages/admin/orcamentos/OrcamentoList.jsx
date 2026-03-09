@@ -53,7 +53,7 @@ export default function OrcamentoList({
         </p>
         {!busca && filtroStatus === "todos" && (
           <Link to="/admin/orcamentos/novo">
-            <Button className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20">
+            <Button className="bg-[#1a3a8f] hover:bg-[#152e73] rounded-xl shadow-md shadow-[#1a3a8f]/20">
               Criar orçamento
             </Button>
           </Link>

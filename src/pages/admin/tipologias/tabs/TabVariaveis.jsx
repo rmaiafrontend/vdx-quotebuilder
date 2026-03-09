@@ -15,8 +15,8 @@ export default function TabVariaveis({
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Variable className="w-4 h-4 text-blue-600" />
+                    <div className="w-9 h-9 rounded-lg bg-[#1a3a8f]/15 flex items-center justify-center">
+                        <Variable className="w-4 h-4 text-[#1a3a8f]" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-slate-900">Variáveis de Entrada</h3>
@@ -29,7 +29,7 @@ export default function TabVariaveis({
                     variant="outline"
                     size="sm"
                     onClick={onAdicionar}
-                    className="h-8 px-3 rounded-lg text-xs font-medium hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                    className="h-8 px-3 rounded-lg text-xs font-medium hover:bg-[#1a3a8f]/10 hover:border-[#1a3a8f]/50 hover:text-[#1a3a8f]"
                 >
                     <Plus className="w-3.5 h-3.5 mr-1.5" />
                     Adicionar
@@ -50,12 +50,12 @@ export default function TabVariaveis({
                     className="relative rounded-xl bg-white border border-slate-200/80 shadow-sm overflow-hidden"
                 >
                     {/* Left accent border */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600 rounded-l-xl" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#1a3a8f] to-[#2962cc] rounded-l-xl" />
 
                     <div className="pl-5 pr-4 py-4">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2.5">
-                                <span className="w-7 h-7 rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                                <span className="w-7 h-7 rounded-lg bg-[#1a3a8f] text-white text-xs font-bold flex items-center justify-center">
                                     {index + 1}
                                 </span>
                                 <div>
@@ -126,7 +126,7 @@ export default function TabVariaveis({
             {variaveis.length > 0 && (
                 <Button
                     variant="outline" onClick={onAdicionar}
-                    className="w-full h-12 border-2 border-dashed border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all rounded-xl"
+                    className="w-full h-12 border-2 border-dashed border-slate-200 hover:bg-[#1a3a8f]/10 hover:border-[#1a3a8f]/50 transition-all rounded-xl"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     <span className="font-medium text-sm">Adicionar Variável</span>

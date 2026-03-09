@@ -130,7 +130,7 @@ export default function VidroTecnicoModal({
           <Button
             onClick={onSave}
             disabled={!formState.nome || isPending}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#1a3a8f] hover:bg-[#152e73]"
           >
             <Save className="w-4 h-4 mr-2" />
             Salvar

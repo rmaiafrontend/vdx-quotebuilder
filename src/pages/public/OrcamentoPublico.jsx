@@ -1,17 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { entities } from "@/api/api";
-import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ArrowLeft, Check, Loader2, Layers, ClipboardList,
-  CheckCircle2, Square, ShoppingCart, Trash2, Plus, Package, Ruler, LogOut,
-  Sparkles, Send
+  CheckCircle2, Square, ShoppingCart, Plus, Package, Ruler,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CategoriaCard from "@/components/orcamento/CategoriaCard";
 import TipologiaCard from "@/components/orcamento/TipologiaCard";
 import InputComUnidade from "@/components/orcamento/InputComUnidade";
@@ -19,7 +16,6 @@ import PecaConferencia from "@/components/orcamento/PecaConferencia";
 import { calcularPecas, calcularPreco } from "@/components/utils/calculoUtils";
 import { ETAPAS_PUBLICO } from "@/constants/orcamento";
 import OrcamentoWizardLayout from "@/features/orcamento-wizard/OrcamentoWizardLayout";
-import OrcamentoSuccessScreen from "@/features/orcamento-wizard/OrcamentoSuccessScreen";
 import { useOrcamentoBase } from "@/hooks/useOrcamentoBase";
 import { useCarrinho } from "@/hooks/useCarrinho";
 import { useCompanyTheme } from "@/hooks/useCompanyTheme";
@@ -28,8 +24,6 @@ export default function OrcamentoPublico() {
   const navigate = useNavigate();
   const { company, primaryColor } = useCompanyTheme();
 
-  const [orcamentoSalvo, setOrcamentoSalvo] = useState(false);
-  const [mostrarCarrinho, setMostrarCarrinho] = useState(false);
   const [acessoriosSelecionados, setAcessoriosSelecionados] = useState([]);
 
   const {
@@ -39,7 +33,6 @@ export default function OrcamentoPublico() {
     variaveisPreenchidas,
     pecasCalculadas, pecaConferenciaAtual,
     tipoVidroSelecionado, setTipoVidroSelecionado,
-    clienteInfo, setClienteInfo,
     unidadeOriginal, totais, variaveisCompletas,
     categorias, tipologiasDaCategoria,
     loadingTipologiaCompleta,
@@ -50,9 +43,9 @@ export default function OrcamentoPublico() {
   } = useOrcamentoBase();
 
   const {
-    carrinho, precoTotalCarrinho,
+    carrinho,
     adicionarAoCarrinho: addToCart,
-    removerDoCarrinho,
+    setDrawerOpen,
   } = useCarrinho();
 
   const acessoriosDisponiveis = produtos.filter(p => p.categoria === 'acessorio');
@@ -89,13 +82,25 @@ export default function OrcamentoPublico() {
 
   const confirmarPecaPublic = (index) => {
     const hasAcessorios = acessoriosDisponiveisTipologia.length > 0;
-    confirmarPeca(index, hasAcessorios ? 4 : 5);
+    if (!hasAcessorios && index === pecasCalculadas.length - 1) {
+      // Última peça sem acessórios: adiciona ao carrinho e abre drawer
+      const novasPecas = [...pecasCalculadas];
+      novasPecas[index] = { ...novasPecas[index], conferido: true };
+      addToCart({ tipologiaSelecionada, tipoVidroSelecionado, variaveisPreenchidas, pecasCalculadas: novasPecas, acessoriosSelecionados, totais, precoAcessorios });
+      confirmarPeca(index, 1); // volta para etapa 1
+      resetWizardLocal();
+      setDrawerOpen(true);
+      return;
+    }
+    confirmarPeca(index, hasAcessorios ? 4 : 1);
   };
 
-  const salvarMutation = useMutation({
-    mutationFn: (data) => entities.Orcamento.createAsVidraceiro(data),
-    onSuccess: () => setOrcamentoSalvo(true)
-  });
+  const adicionarAoCarrinhoEAbrir = () => {
+    if (!tipologiaSelecionada || !tipoVidroSelecionado || pecasCalculadas.length === 0) return;
+    addToCart({ tipologiaSelecionada, tipoVidroSelecionado, variaveisPreenchidas, pecasCalculadas, acessoriosSelecionados, totais, precoAcessorios });
+    resetWizardLocal();
+    setDrawerOpen(true);
+  };
 
   const adicionarAoCarrinho = () => {
     if (!tipologiaSelecionada || !tipoVidroSelecionado || pecasCalculadas.length === 0) return;
@@ -103,27 +108,9 @@ export default function OrcamentoPublico() {
     resetWizardLocal();
   };
 
-  const irParaFinalizacao = () => {
-    if (!tipologiaSelecionada || !tipoVidroSelecionado || pecasCalculadas.length === 0) return;
-    addToCart({ tipologiaSelecionada, tipoVidroSelecionado, variaveisPreenchidas, pecasCalculadas, acessoriosSelecionados, totais, precoAcessorios });
-    setMostrarCarrinho(false);
-    setEtapaAtual(5);
-  };
-
   const resetWizardLocal = () => {
     resetWizard();
     setAcessoriosSelecionados([]);
-    setMostrarCarrinho(false);
-  };
-
-  const salvarOrcamento = () => {
-    salvarMutation.mutate({
-      cliente_nome: clienteInfo.nome,
-      cliente_telefone: clienteInfo.telefone,
-      cliente_email: clienteInfo.email,
-      itens: carrinho,
-      preco_total: precoTotalCarrinho,
-    });
   };
 
   const podeAvancar = () => {
@@ -132,69 +119,51 @@ export default function OrcamentoPublico() {
       case 2: return tipologiaSelecionada && variaveisCompletas && !!tipoVidroSelecionado;
       case 3: return pecasCalculadas.every(p => p.conferido);
       case 4: return true;
-      case 5: return carrinho.length > 0 && clienteInfo.nome && clienteInfo.telefone;
       default: return false;
     }
   };
-
-  if (orcamentoSalvo) {
-    return (
-      <OrcamentoSuccessScreen
-        company={company} primaryColor={primaryColor}
-        onRestart={() => { resetWizardLocal(); setOrcamentoSalvo(false); }}
-        onNavigateHome={() => navigate("/")}
-      />
-    );
-  }
 
   const backButton = etapaAtual === 1 ? (
     <button type="button" onClick={() => navigate("/")} className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity" style={{ color: primaryColor }}>
       <ArrowLeft className="w-4 h-4" /><span>Voltar para Home</span>
     </button>
   ) : (
-    <button type="button" onClick={() => { if (mostrarCarrinho) setMostrarCarrinho(false); else setEtapaAtual(etapaAtual - 1); }} className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity" style={{ color: primaryColor }}>
+    <button type="button" onClick={() => {
+      if (etapaAtual === 2) { setTipologiaSelecionada(null); setTipoVidroSelecionado(null); }
+      setEtapaAtual(etapaAtual - 1);
+    }} className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity" style={{ color: primaryColor }}>
       <ArrowLeft className="w-4 h-4" /><span>Voltar</span>
     </button>
   );
 
-  const rightSlot = (
-    <>
-      <button type="button" className="relative p-2 hover:bg-white/10 rounded-lg transition-colors" onClick={() => carrinho.length > 0 && setEtapaAtual(5)} disabled={carrinho.length === 0}>
-        <ShoppingCart className="w-5 h-5 text-white" />
-        {carrinho.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-400 rounded-full ring-2 ring-white/30 animate-pulse" />}
-      </button>
-      <button type="button" onClick={() => navigate("/")} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-        <LogOut className="w-5 h-5 text-white" />
-      </button>
-    </>
-  );
-
   return (
-    <OrcamentoWizardLayout etapas={ETAPAS_PUBLICO} etapaAtual={etapaAtual} company={company} primaryColor={primaryColor} rightSlot={rightSlot} backButton={backButton}>
+    <OrcamentoWizardLayout etapas={ETAPAS_PUBLICO} etapaAtual={etapaAtual} company={company} primaryColor={primaryColor} backButton={backButton}>
       <AnimatePresence mode="wait">
         {/* Etapa 1: Categorias */}
         {etapaAtual === 1 && (
           <motion.div key="categorias" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `linear-gradient(135deg, ${primaryColor}18, ${primaryColor}08)` }}>
-                  <Layers className="w-5 h-5" style={{ color: primaryColor }} />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Selecione a Categoria</h2>
-                  <p className="text-slate-500 text-sm mt-0.5">Escolha o tipo de produto para seu orcamento</p>
-                </div>
+            <div className="text-center mb-8">
+              <div
+                className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`, boxShadow: `0 4px 14px ${primaryColor}30` }}
+              >
+                <Layers className="w-7 h-7 text-white" />
               </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">O que você precisa?</h2>
+              <p className="text-slate-500 text-sm sm:text-base mt-2 max-w-md mx-auto">Selecione a categoria do produto para iniciar seu orçamento</p>
             </div>
             {categorias.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04]">
-                <Layers className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                <p className="text-slate-500">Nenhuma categoria disponivel</p>
+              <div className="text-center py-16 bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04]">
+                <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                  <Layers className="w-8 h-8 text-slate-300" />
+                </div>
+                <h3 className="font-bold text-slate-800 mb-1">Nenhuma categoria disponível</h3>
+                <p className="text-sm text-slate-500">As categorias aparecerão aqui quando cadastradas.</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
                 {categorias.map((cat, i) => (
-                  <CategoriaCard key={cat.id} categoria={cat} onClick={() => { setCategoriaSelecionada(cat); setEtapaAtual(2); }} index={i} />
+                  <CategoriaCard key={cat.id} categoria={cat} onClick={() => { setCategoriaSelecionada(cat); setTipologiaSelecionada(null); setTipoVidroSelecionado(null); setEtapaAtual(2); }} index={i} primaryColor={primaryColor} />
                 ))}
               </div>
             )}
@@ -208,8 +177,8 @@ export default function OrcamentoPublico() {
               <>
                 <div className="mb-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100/50 flex items-center justify-center shadow-sm">
-                      <ClipboardList className="w-5 h-5 text-indigo-600" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2962cc]/10 to-[#2962cc]/15/50 flex items-center justify-center shadow-sm">
+                      <ClipboardList className="w-5 h-5 text-[#1a3a8f]" />
                     </div>
                     <div>
                       <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{categoriaSelecionada?.nome || 'Tipologias'}</h2>
@@ -233,53 +202,49 @@ export default function OrcamentoPublico() {
             ) : (
               <>
                 {loadingTipologiaCompleta && (
-                  <div className="flex items-center gap-2 text-slate-600 py-4 mb-4">
-                    <Loader2 className="w-5 h-5 animate-spin" /><span>Carregando dados da tipologia...</span>
+                  <div className="flex items-center justify-center gap-3 py-12">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${primaryColor}10` }}>
+                      <Loader2 className="w-5 h-5 animate-spin" style={{ color: primaryColor }} />
+                    </div>
+                    <span className="text-slate-600 font-medium">Carregando dados...</span>
                   </div>
                 )}
-                {/* Selected typology card */}
-                <div className="mb-5 p-4 bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] overflow-hidden relative">
-                  <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}66)` }} />
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center flex-shrink-0 border border-slate-200 shadow-sm">
-                      {(tipologiaSelecionada.imagens?.[0] ?? tipologiaSelecionada.imagemUrl) ? (
-                        <img src={tipologiaSelecionada.imagens?.[0] ?? tipologiaSelecionada.imagemUrl} alt={tipologiaSelecionada.nome} className="max-w-full max-h-full object-contain rounded" />
-                      ) : (
-                        <Layers className="w-7 h-7 text-slate-300" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <h3 className="text-base font-bold text-slate-900 truncate">{tipologiaSelecionada.nome}</h3>
-                        <Button variant="ghost" size="sm" onClick={() => { setTipologiaSelecionada(null); setTipoVidroSelecionado(null); }} className="text-slate-500 h-7 px-2 text-xs flex-shrink-0 hover:text-red-500">Alterar</Button>
-                      </div>
-                      <p className="text-xs text-slate-500 mb-1.5 line-clamp-1">{tipologiaSelecionada.descricao}</p>
-                      <div className="flex items-center gap-1.5">
-                        <Square className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                        <span className="text-xs font-medium" style={{ color: primaryColor }}>{tipologiaSelecionada.pecas?.length || 0} peca{tipologiaSelecionada.pecas?.length !== 1 ? 's' : ''}</span>
-                      </div>
+
+                {/* Selected typology chip */}
+                <div className="flex items-center gap-3 mb-6 p-3 bg-white rounded-xl shadow-sm ring-1 ring-black/[0.06]">
+                  <div className="w-11 h-11 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-slate-200/60">
+                    {(tipologiaSelecionada.imagens?.[0] ?? tipologiaSelecionada.imagemUrl) ? (
+                      <img src={tipologiaSelecionada.imagens?.[0] ?? tipologiaSelecionada.imagemUrl} alt={tipologiaSelecionada.nome} className="w-full h-full object-contain rounded-lg" />
+                    ) : (
+                      <Layers className="w-5 h-5 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 truncate">{tipologiaSelecionada.nome}</h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: `${primaryColor}10`, color: primaryColor }}>
+                        {tipologiaSelecionada.pecas?.length || 0} peça{tipologiaSelecionada.pecas?.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   </div>
+                  <button onClick={() => { setTipologiaSelecionada(null); setTipoVidroSelecionado(null); }} className="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 flex-shrink-0">
+                    Alterar
+                  </button>
                 </div>
 
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100/50 flex items-center justify-center shadow-sm">
-                      <Ruler className="w-5 h-5 text-violet-600" />
+                <div className="space-y-5">
+                  {/* Variables section */}
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${primaryColor}10` }}>
+                        <Ruler className="w-4 h-4" style={{ color: primaryColor }} />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900">Informe as medidas</h3>
+                        <p className="text-xs text-slate-500">Preencha os campos abaixo</p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Medidas e Tipo de Vidro</h2>
-                      <p className="text-slate-500 text-sm mt-0.5">Preencha as variaveis e selecione o vidro</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] overflow-hidden">
-                    <div className="px-5 pt-5 pb-3">
-                      <h3 className="text-base sm:text-lg font-bold text-slate-900">Variaveis de Entrada</h3>
-                    </div>
-                    <div className="px-5 pb-5 space-y-3 sm:space-y-4">
+                    <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/[0.06] p-4 sm:p-5 space-y-4">
                       {variaveisPreenchidas.map((variavel, index) => (
                         <InputComUnidade
                           key={variavel.id || index}
@@ -293,64 +258,85 @@ export default function OrcamentoPublico() {
                     </div>
                   </div>
 
+                  {/* Glass type section */}
                   {variaveisCompletas && (
-                    <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] overflow-hidden">
-                      <div className="px-5 pt-5 pb-3">
-                        <h3 className="text-lg font-bold text-slate-900">Tipo de Vidro</h3>
-                        <p className="text-sm text-slate-500 mt-1">Selecione a cor e veja o preco final estimado</p>
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                          <Sparkles className="w-4 h-4 text-violet-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">Escolha o vidro</h3>
+                          <p className="text-xs text-slate-500">Selecione e veja o preço estimado</p>
+                        </div>
                       </div>
-                      <div className="px-5 pb-5 space-y-3">
+                      <div className="space-y-2.5">
                         {tiposVidroDisponiveis.map((tipo) => {
                           const resultadoTemp = calcularPecas(tipologiaSelecionada, variaveisPreenchidas);
                           const temErro = resultadoTemp.erros?.length > 0;
                           const precoEstimado = temErro ? NaN : calcularPreco(resultadoTemp.areaTotalCobrancaM2, tipo.preco_m2 || 0);
                           const isSelected = tipoVidroSelecionado?.id === tipo.id;
                           return (
-                            <div key={tipo.id} onClick={() => setTipoVidroSelecionado(tipo)}
-                              className={`p-4 rounded-xl cursor-pointer transition-all duration-200 ${isSelected ? 'shadow-lg ring-2' : 'bg-slate-50 hover:bg-slate-100/80 ring-1 ring-slate-200/60 hover:ring-slate-300'}`}
-                              style={isSelected ? { ringColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}20`, backgroundColor: `${primaryColor}06`, borderColor: primaryColor } : {}}
+                            <div
+                              key={tipo.id}
+                              onClick={() => setTipoVidroSelecionado(tipo)}
+                              className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 overflow-hidden ${
+                                isSelected
+                                  ? 'bg-white shadow-lg ring-2'
+                                  : 'bg-white ring-1 ring-slate-200/70 hover:ring-slate-300 hover:shadow-md'
+                              }`}
+                              style={isSelected ? { boxShadow: `0 4px 14px ${primaryColor}15`, '--tw-ring-color': primaryColor } : {}}
                             >
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <div className="relative">
-                                    <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl border-2 shadow-sm flex-shrink-0" style={{ backgroundColor: tipo.cor || '#e2e8f0', borderColor: isSelected ? primaryColor : '#fff' }} />
-                                    {isSelected && (
-                                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white shadow-md" style={{ backgroundColor: primaryColor }}>
-                                        <Check className="w-3 h-3" strokeWidth={3} />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">{tipo.nome}</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">{tipo.codigo}</p>
-                                  </div>
+                              {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: primaryColor }} />}
+                              <div className="flex items-center gap-3">
+                                {/* Color swatch */}
+                                <div className="relative flex-shrink-0">
+                                  <div
+                                    className={`w-11 h-11 rounded-xl shadow-sm ring-1 transition-all ${isSelected ? 'ring-2 scale-105' : 'ring-slate-200/60'}`}
+                                    style={{ backgroundColor: tipo.cor || '#e2e8f0', ...(isSelected ? { '--tw-ring-color': primaryColor } : {}) }}
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white shadow-md" style={{ backgroundColor: primaryColor }}>
+                                      <Check className="w-3 h-3" strokeWidth={3} />
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:flex-col sm:items-end sm:gap-1 flex-shrink-0">
-                                  <div className="text-left sm:text-right">
-                                    <p className={`text-base sm:text-lg font-bold ${isSelected ? '' : 'text-slate-900'}`} style={isSelected ? { color: primaryColor } : {}}>
-                                      {temErro ? "—" : `R$ ${precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-0.5">{temErro ? "—" : `${resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²`}</p>
-                                  </div>
+
+                                {/* Name + code */}
+                                <div className="flex-1 min-w-0">
+                                  <p className={`font-semibold text-sm truncate ${isSelected ? '' : 'text-slate-900'}`} style={isSelected ? { color: primaryColor } : {}}>
+                                    {tipo.nome}
+                                  </p>
+                                  <p className="text-[11px] text-slate-400 mt-0.5">{tipo.codigo}</p>
+                                </div>
+
+                                {/* Price */}
+                                <div className="text-right flex-shrink-0">
+                                  <p className={`text-base font-bold tabular-nums ${isSelected ? '' : 'text-slate-800'}`} style={isSelected ? { color: primaryColor } : {}}>
+                                    {temErro ? "—" : `R$ ${precoEstimado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                  </p>
+                                  <p className="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                                    {temErro ? "—" : `${resultadoTemp.areaTotalCobrancaM2.toFixed(2)} m²`}
+                                  </p>
                                 </div>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   <Button
                     onClick={() => executarCalculo(3)}
                     disabled={!podeAvancar()}
-                    className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg"
+                    className="w-full h-13 text-base font-bold rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl active:scale-[0.98]"
                     style={{
                       background: podeAvancar() ? `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` : undefined,
-                      boxShadow: podeAvancar() ? `0 4px 14px ${primaryColor}40` : undefined
+                      boxShadow: podeAvancar() ? `0 6px 20px ${primaryColor}35` : undefined
                     }}
                   >
-                    Calcular Pecas e Continuar <ArrowRight className="w-5 h-5 ml-2" />
+                    Calcular e Continuar <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </div>
               </>
@@ -359,20 +345,33 @@ export default function OrcamentoPublico() {
         )}
 
         {/* Etapa 3: Conferencia */}
-        {etapaAtual === 3 && !mostrarCarrinho && (
+        {etapaAtual === 3 && (
           <motion.div key="conferencia" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 flex items-center justify-center shadow-sm">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Conferencia das Pecas</h2>
-                  <p className="text-slate-500 text-sm mt-0.5">Verifique as medidas de cada peca</p>
-                </div>
+            <div className="text-center mb-5">
+              <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 mb-3 shadow-lg shadow-emerald-500/25">
+                <CheckCircle2 className="w-5 h-5 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-slate-900">Conferência das Peças</h2>
+              <p className="text-slate-400 text-sm mt-1">Verifique as medidas e confirme cada peça</p>
+              {/* Pagination dots */}
+              {pecasCalculadas.length > 1 && (
+                <div className="flex items-center justify-center gap-1.5 mt-3">
+                  {pecasCalculadas.map((p, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i === pecaConferenciaAtual
+                          ? 'w-6 bg-[#1a3a8f]'
+                          : p.conferido
+                          ? 'w-1.5 bg-emerald-400'
+                          : 'w-1.5 bg-slate-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-lg mx-auto">
               {pecasCalculadas.length > 0 && (
                 <PecaConferencia
                   peca={pecasCalculadas[pecaConferenciaAtual]}
@@ -449,12 +448,12 @@ export default function OrcamentoPublico() {
 
                 <div className="space-y-3">
                   <Button
-                    onClick={irParaFinalizacao}
+                    onClick={adicionarAoCarrinhoEAbrir}
                     className="w-full h-12 sm:h-14 text-sm sm:text-base rounded-xl font-semibold shadow-lg"
                     size="lg"
                     style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`, boxShadow: `0 4px 14px ${primaryColor}40` }}
                   >
-                    Continuar para Finalizacao <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+                    <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> Adicionar ao Carrinho
                   </Button>
                   <Button onClick={adicionarAoCarrinho} variant="outline" className="w-full h-11 sm:h-12 text-sm sm:text-base border-2 rounded-xl font-medium">
                     <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> Adicionar Mais Itens
@@ -527,106 +526,6 @@ export default function OrcamentoPublico() {
           </motion.div>
         )}
 
-        {/* Etapa 5: Finalizar */}
-        {etapaAtual === 5 && (
-          <motion.div key="finalizar" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 flex items-center justify-center shadow-sm">
-                  <Send className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Finalizar Orcamento</h2>
-                  <p className="text-slate-500 text-sm mt-0.5">Revise os itens e informe seus dados</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-4">
-                {/* Cart items */}
-                <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] overflow-hidden">
-                  <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <ShoppingCart className="w-5 h-5 text-slate-400" /> Itens ({carrinho.length})
-                    </h3>
-                    <Button variant="ghost" size="sm" onClick={() => { setEtapaAtual(1); setMostrarCarrinho(false); }} className="font-medium" style={{ color: primaryColor }}>
-                      <Plus className="w-4 h-4 mr-1" /> Adicionar
-                    </Button>
-                  </div>
-                  <div className="px-5 pb-5 space-y-3">
-                    {carrinho.length === 0 ? (
-                      <div className="text-center py-8 text-slate-500">
-                        <ShoppingCart className="w-12 h-12 mx-auto text-slate-200 mb-2" />
-                        <p className="font-medium">Nenhum item no carrinho</p>
-                      </div>
-                    ) : (
-                      carrinho.map((item, idx) => (
-                        <div key={item.id} className="p-4 bg-slate-50/80 rounded-xl ring-1 ring-slate-200/50">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[11px] font-bold text-white px-2 py-0.5 rounded-md" style={{ backgroundColor: primaryColor }}>#{idx + 1}</span>
-                                <h4 className="font-semibold text-slate-900">{item.tipologia_nome}</h4>
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-4 h-4 rounded border shadow-sm" style={{ backgroundColor: item.tipo_vidro_cor || '#e2e8f0' }} />
-                                <p className="text-sm text-slate-600">{item.tipo_vidro_nome}</p>
-                              </div>
-                              <p className="text-xs text-slate-400">
-                                {item.pecas_calculadas.length} pecas · {item.area_total_cobranca_m2?.toFixed(2)} m²
-                                {item.acessorios_selecionados?.length > 0 && <> · {item.acessorios_selecionados.length} acessorios</>}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-lg font-bold text-slate-900">R$ {item.preco_total_item.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                              <Button variant="ghost" size="sm" onClick={() => removerDoCarrinho(item.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 mt-1"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {/* Total card */}
-                <div
-                  className="rounded-2xl text-white shadow-xl overflow-hidden relative"
-                  style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
-                >
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
-                  <div className="relative p-6">
-                    <p className="text-white/70 text-sm mb-1">Total do Orcamento</p>
-                    <p className="text-4xl font-bold mb-2 tabular-nums">R$ {precoTotalCarrinho.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <p className="text-xs text-white/70">{carrinho.length} {carrinho.length === 1 ? 'item' : 'itens'}</p>
-                  </div>
-                </div>
-
-                {/* Client info */}
-                <div className="bg-white rounded-2xl shadow-md ring-1 ring-black/[0.04] overflow-hidden">
-                  <div className="px-5 pt-5 pb-3">
-                    <h3 className="text-lg font-bold text-slate-900">Seus Dados</h3>
-                  </div>
-                  <div className="px-5 pb-5 space-y-4">
-                    <div><Label className="text-sm font-medium">Nome *</Label><Input value={clienteInfo.nome} onChange={(e) => setClienteInfo({ ...clienteInfo, nome: e.target.value })} placeholder="Seu nome completo" className="mt-1.5 h-11 rounded-lg" /></div>
-                    <div><Label className="text-sm font-medium">Telefone *</Label><Input value={clienteInfo.telefone} onChange={(e) => setClienteInfo({ ...clienteInfo, telefone: e.target.value })} placeholder="(00) 00000-0000" className="mt-1.5 h-11 rounded-lg" /></div>
-                    <div><Label className="text-sm font-medium">E-mail (opcional)</Label><Input value={clienteInfo.email} onChange={(e) => setClienteInfo({ ...clienteInfo, email: e.target.value })} placeholder="email@exemplo.com" type="email" className="mt-1.5 h-11 rounded-lg" /></div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={salvarOrcamento}
-                  disabled={!podeAvancar() || salvarMutation.isPending}
-                  className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
-                  style={{ boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)' }}
-                >
-                  {salvarMutation.isPending ? (<><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Enviando...</>) : (<><CheckCircle2 className="w-5 h-5 mr-2" /> Enviar Orcamento</>)}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
     </OrcamentoWizardLayout>
   );
