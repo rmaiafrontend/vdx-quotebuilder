@@ -8,9 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import FormulaInput from '@/components/FormulaInput';
 
 export default function TabPecas({
     pecas,
+    variaveis = [],
     categoriasConfiguracao,
     onAdicionarPeca,
     onAtualizarPeca,
@@ -60,6 +62,7 @@ export default function TabPecas({
                     key={peca.id}
                     peca={peca}
                     index={index}
+                    variaveis={variaveis}
                     categoriasConfiguracao={categoriasConfiguracao}
                     onAtualizar={onAtualizarPeca}
                     onRemover={onRemoverPeca}
@@ -86,7 +89,7 @@ export default function TabPecas({
 }
 
 function PecaItem({
-    peca, index, categoriasConfiguracao,
+    peca, index, variaveis, categoriasConfiguracao,
     onAtualizar, onRemover, onImagemUpload, onRemoverImagem,
     onAdicionarConfiguracao, onRemoverConfiguracao, onAtualizarConfiguracao, onToggleItemConfiguracao,
 }) {
@@ -140,26 +143,20 @@ function PecaItem({
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                            <Label className="text-xs font-medium text-slate-600 mb-1.5 block">Fórmula da Largura (mm) *</Label>
-                            <Input
-                                value={peca.formula_largura}
-                                onChange={(e) => onAtualizar(index, 'formula_largura', e.target.value)}
-                                placeholder="Ex: Lv - 15"
-                                className="h-9 font-mono text-sm rounded-lg"
-                            />
-                            <p className="text-[11px] text-slate-400 mt-1">Use variáveis definidas (ex: Lv, Av)</p>
-                        </div>
-                        <div>
-                            <Label className="text-xs font-medium text-slate-600 mb-1.5 block">Fórmula da Altura (mm) *</Label>
-                            <Input
-                                value={peca.formula_altura}
-                                onChange={(e) => onAtualizar(index, 'formula_altura', e.target.value)}
-                                placeholder="Ex: Av - Ap - 13"
-                                className="h-9 font-mono text-sm rounded-lg"
-                            />
-                            <p className="text-[11px] text-slate-400 mt-1">Use variáveis definidas (ex: Lv, Av)</p>
-                        </div>
+                        <FormulaInput
+                            label="Fórmula da Largura (mm) *"
+                            value={peca.formula_largura}
+                            onChange={(val) => onAtualizar(index, 'formula_largura', val)}
+                            variaveis={variaveis}
+                            placeholder="Ex: Lv - 15"
+                        />
+                        <FormulaInput
+                            label="Fórmula da Altura (mm) *"
+                            value={peca.formula_altura}
+                            onChange={(val) => onAtualizar(index, 'formula_altura', val)}
+                            variaveis={variaveis}
+                            placeholder="Ex: Av - Ap - 13"
+                        />
                     </div>
 
                     {/* Imagem Ilustrativa */}

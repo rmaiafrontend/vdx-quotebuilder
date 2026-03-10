@@ -242,7 +242,7 @@ const REGEX_IDENTIFICADOR = /\b[A-Za-z_][A-Za-z0-9_]*\b/g;
  * @param {string} formula
  * @returns {string[]} Lista única de identificadores.
  */
-function extrairIdentificadoresFormula(formula) {
+export function extrairIdentificadoresFormula(formula) {
   if (!formula || typeof formula !== 'string') return [];
   const matches = formula.trim().match(REGEX_IDENTIFICADOR) || [];
   return [...new Set(matches)];
@@ -262,8 +262,10 @@ export function validarFormulasTipologia(tipologia) {
     return { valido: true, erros: [], avisos: [] };
   }
 
+  const valoresDistintos = [2000, 1000, 500, 250, 125];
   const variaveisTeste = {};
-  nomesVariaveis.forEach((n) => { variaveisTeste[n] = 1000; });
+  let idx = 0;
+  nomesVariaveis.forEach((n) => { variaveisTeste[n] = valoresDistintos[idx++] || 1000; });
 
   for (let i = 0; i < tipologia.pecas.length; i++) {
     const peca = tipologia.pecas[i];
@@ -285,8 +287,11 @@ export function validarFormulasTipologia(tipologia) {
         }
       }
       const result = avaliarFormula(formula, variaveisTeste);
-      if (!Number.isFinite(result.valor) || result.valor < 0) {
-        avisos.push(`${nomePeca}: fórmula de ${label} não retorna um valor válido com valores de teste. ${result.erro || ''}`);
+      if (!Number.isFinite(result.valor)) {
+        const isNegativo = result.erro && result.erro.includes('negativo');
+        if (!isNegativo) {
+          avisos.push(`${nomePeca}: fórmula de ${label} não retorna um valor válido com valores de teste. ${result.erro || ''}`);
+        }
       }
     }
   }

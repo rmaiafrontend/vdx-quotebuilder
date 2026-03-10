@@ -92,7 +92,7 @@ export default function PecaConferencia({
 }) {
   const largura = formatarMedida(peca.largura_real_mm, unidadeOriginal);
   const altura = formatarMedida(peca.altura_real_mm, unidadeOriginal);
-  const area = peca.area_real_m2?.toFixed(4);
+  const area = peca.area_real_m2?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const todasConfiguracoesPreenchidas = !(configuracoesTecnicas || []).some((config, idx) => {
     if (!config.obrigatorio) return false;

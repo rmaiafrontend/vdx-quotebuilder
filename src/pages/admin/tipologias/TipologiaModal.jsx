@@ -105,6 +105,7 @@ export default function TipologiaModal({
                         <TabsContent value="pecas" className="mt-0">
                             <TabPecas
                                 pecas={formData.pecas}
+                                variaveis={formData.variaveis}
                                 categoriasConfiguracao={categoriasConfiguracao}
                                 onAdicionarPeca={formHandlers.adicionarPeca}
                                 onAtualizarPeca={formHandlers.atualizarPeca}

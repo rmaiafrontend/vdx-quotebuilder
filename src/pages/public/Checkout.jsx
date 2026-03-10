@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCarrinho } from "@/hooks/useCarrinho";
 import { useCompanyTheme } from "@/hooks/useCompanyTheme";
+import { useVidraceiro } from "@/lib/VidracerioContext";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -20,6 +21,16 @@ export default function Checkout() {
     salvarOrcamento, salvarMutation, podeEnviar,
     orcamentoSalvo, resetCarrinho,
   } = useCarrinho();
+  const { vidraceiro } = useVidraceiro();
+
+  useEffect(() => {
+    if (!vidraceiro) return;
+    setClienteInfo(prev => ({
+      nome: prev.nome || vidraceiro.name || '',
+      telefone: prev.telefone || vidraceiro.phone || '',
+      email: prev.email || vidraceiro.email || '',
+    }));
+  }, [vidraceiro]); // eslint-disable-line react-hooks/exhaustive-deps
   const color = primaryColor || "#1a3a8f";
 
   // Success state
