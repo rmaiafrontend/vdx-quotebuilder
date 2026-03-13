@@ -31,7 +31,7 @@ function useCarrinhoInternal() {
     }, [carrinho]);
 
     const salvarMutation = useMutation({
-        mutationFn: (itens) => Promise.all(itens.map(item => entities.Orcamento.createAsVidraceiro(item))),
+        mutationFn: (/** @type {any} */ payload) => entities.Orcamento.createAsVidraceiro(payload),
         onSuccess: () => setOrcamentoSalvo(true),
     });
 
@@ -71,25 +71,23 @@ function useCarrinhoInternal() {
     const limparCarrinho = useCallback(() => setCarrinho([]), []);
 
     const salvarOrcamento = useCallback(() => {
-        const itensPayload = carrinho.map(item => ({
-            numero: `ORC-${Date.now().toString().slice(-8)}-${item.id.toString().slice(-4)}`,
+        const payload = {
             cliente_nome: clienteInfo.nome,
             cliente_telefone: clienteInfo.telefone,
             cliente_email: clienteInfo.email || null,
-            tipologia_id: item.tipologia_id,
-            tipologia_nome: item.tipologia_nome,
-            tipo_vidro_id: item.tipo_vidro_id,
-            tipo_vidro_nome: item.tipo_vidro_nome,
-            variaveis_entrada: item.variaveis_entrada,
-            pecas_calculadas: item.pecas_calculadas,
-            acessorios_selecionados: item.acessorios_selecionados,
-            area_total_real_m2: item.area_total_real_m2,
-            area_total_cobranca_m2: item.area_total_cobranca_m2,
-            preco_m2: item.preco_m2,
-            preco_total: item.preco_total_item,
-            status: 'aguardando_aprovacao',
-        }));
-        salvarMutation.mutate(itensPayload);
+            itens: carrinho.map(item => ({
+                tipologia_id: item.tipologia_id,
+                tipologia_nome: item.tipologia_nome,
+                tipo_vidro_id: item.tipo_vidro_id,
+                tipo_vidro_nome: item.tipo_vidro_nome,
+                variaveis_entrada: item.variaveis_entrada,
+                pecas_calculadas: item.pecas_calculadas,
+                acessorios_selecionados: item.acessorios_selecionados,
+                area_total_real_m2: item.area_total_real_m2,
+                preco_m2: item.preco_m2,
+            })),
+        };
+        salvarMutation.mutate(payload);
     }, [clienteInfo, carrinho]);
 
     const podeEnviar = carrinho.length > 0 && clienteInfo.nome && clienteInfo.telefone;

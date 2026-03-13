@@ -1,4 +1,4 @@
-import Categorias from './pages/Categorias';
+import Categorias from './pages/admin/Categorias.jsx';
 import Configuracoes from './pages/Configuracoes';
 import Dashboard from './pages/Dashboard';
 import NovoOrcamento from './pages/NovoOrcamento';
