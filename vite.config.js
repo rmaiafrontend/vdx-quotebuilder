@@ -17,5 +17,12 @@ export default defineConfig({
     port: 5173,
     open: true, // Abre o navegador automaticamente
     host: true, // Permite acesso de outros dispositivos na rede
+    proxy: {
+      '/api': {
+        target: 'https://vdx-backend-production.up.railway.app',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 });

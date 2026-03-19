@@ -27,12 +27,15 @@ function useCarrinhoInternal() {
     const [orcamentoSalvo, setOrcamentoSalvo] = useState(false);
 
     const precoTotalCarrinho = useMemo(() => {
-        return carrinho.reduce((sum, item) => sum + item.preco_total_item, 0);
+        return Math.round(carrinho.reduce((sum, item) => sum + item.preco_total_item, 0) * 100) / 100;
     }, [carrinho]);
 
     const salvarMutation = useMutation({
         mutationFn: (/** @type {any} */ payload) => entities.Orcamento.createAsVidraceiro(payload),
-        onSuccess: () => setOrcamentoSalvo(true),
+        onSuccess: () => {
+            setCarrinho([]);
+            setOrcamentoSalvo(true);
+        },
     });
 
     const criarItemCarrinho = ({ tipologiaSelecionada, tipoVidroSelecionado, variaveisPreenchidas, pecasCalculadas, acessoriosSelecionados, totais, precoAcessorios }) => {
@@ -85,6 +88,7 @@ function useCarrinhoInternal() {
                 acessorios_selecionados: item.acessorios_selecionados,
                 area_total_real_m2: item.area_total_real_m2,
                 preco_m2: item.preco_m2,
+                preco_total: Number.isFinite(item.preco_total_item) ? item.preco_total_item : 0,
             })),
         };
         salvarMutation.mutate(payload);

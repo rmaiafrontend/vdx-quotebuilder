@@ -4,7 +4,7 @@ module.exports = {
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	fontFamily: {
-  		sans: ['Open Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+  		sans: ['Onest', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
   	},
   	extend: {
   		borderRadius: {

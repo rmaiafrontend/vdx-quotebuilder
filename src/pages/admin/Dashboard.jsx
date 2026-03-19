@@ -2,456 +2,295 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { entities } from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/AuthContext";
 import {
-  FileText,
-  Clock,
-  CheckCircle2,
-  DollarSign,
-  Plus,
-  ChevronRight,
-  Package,
-  ShoppingCart,
-  ArrowRight,
-  TrendingUp,
+  FileText, Clock, CheckCircle2, DollarSign,
+  Package, ShoppingCart, LayoutGrid, Wrench,
+  ChevronRight, ArrowUpRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
 } from "recharts";
 
+const fmt = (v) => `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
 const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
   return "Boa noite";
 };
 
-const formatDate = () => {
-  const now = new Date();
-  const options = { weekday: "long", day: "numeric", month: "long" };
-  return now.toLocaleDateString("pt-BR", options);
-};
-
 const STATUS_CONFIG = {
-  AGUARDANDO_APROVACAO: { label: "Aguardando Aprovação", color: "bg-amber-100 text-amber-700", chartColor: "#f59e0b" },
-  AGUARDANDO_PAGAMENTO: { label: "Aguardando Pagamento", color: "bg-orange-100 text-orange-700", chartColor: "#f97316" },
-  EM_PRODUCAO: { label: "Em Produção", color: "bg-[#1a3a8f]/15 text-[#1a3a8f]", chartColor: "#1a3a8f" },
-  AGUARDANDO_RETIRADA: { label: "Pronto", color: "bg-green-100 text-green-700", chartColor: "#22c55e" },
-  CANCELADO: { label: "Cancelado", color: "bg-red-100 text-red-700", chartColor: "#ef4444" },
+  AGUARDANDO_APROVACAO: { label: "Aguardando Aprovação", color: "#f59e0b" },
+  AGUARDANDO_PAGAMENTO: { label: "Aguardando Pagamento", color: "#f97316" },
+  EM_PRODUCAO:          { label: "Em Produção",          color: "#1a3a8f" },
+  AGUARDANDO_RETIRADA:  { label: "Pronto p/ Retirada",   color: "#10b981" },
+  CANCELADO:            { label: "Cancelado",             color: "#ef4444" },
 };
 
-const STAT_CARDS = [
-  {
-    key: "total",
-    label: "Total Orçamentos",
-    icon: FileText,
-    gradient: "from-[#1a3a8f] to-[#2962cc]",
-    bg: "bg-[#1a3a8f]/10",
-    text: "text-[#1a3a8f]",
-  },
-  {
-    key: "emAndamento",
-    label: "Em Andamento",
-    icon: Clock,
-    gradient: "from-amber-500 to-orange-500",
-    bg: "bg-amber-500/10",
-    text: "text-amber-600",
-  },
-  {
-    key: "concluidos",
-    label: "Finalizados",
-    icon: CheckCircle2,
-    gradient: "from-emerald-500 to-green-500",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-600",
-  },
-  {
-    key: "valorTotal",
-    label: "Valor Total",
-    icon: DollarSign,
-    gradient: "from-violet-500 to-purple-500",
-    bg: "bg-violet-500/10",
-    text: "text-violet-600",
-    isCurrency: true,
-  },
+const QUICK_LINKS = [
+  { label: "Tipologias",       desc: "Modelos e configurações",    icon: Package,    to: "/admin/tipologias",              color: "#1a3a8f" },
+  { label: "Categorias",       desc: "Grupos de tipologias",       icon: LayoutGrid, to: "/admin/categorias",              color: "#0891b2" },
+  { label: "Produtos",         desc: "Vidros e acessórios",        icon: ShoppingCart, to: "/admin/produtos",             color: "#059669" },
+  { label: "Config. Técnicas", desc: "Parâmetros do sistema",      icon: Wrench,     to: "/admin/configuracoes-tecnicas",  color: "#7c3aed" },
 ];
-
-const QUICK_ACTIONS = [
-  {
-    label: "Tipologias",
-    description: "Gerenciar modelos e tipologias",
-    icon: Package,
-    to: "/admin/tipologias",
-    gradient: "from-amber-500 to-orange-500",
-    shadow: "shadow-amber-500/25",
-  },
-  {
-    label: "Produtos",
-    description: "Catálogo de vidros e acessórios",
-    icon: ShoppingCart,
-    to: "/admin/produtos",
-    gradient: "from-emerald-500 to-green-500",
-    shadow: "shadow-emerald-500/25",
-  },
-  {
-    label: "Categorias",
-    description: "Gerenciar categorias de produtos",
-    icon: FileText,
-    to: "/admin/categorias",
-    gradient: "from-[#1a3a8f] to-[#2962cc]",
-    shadow: "shadow-[#1a3a8f]/25",
-  },
-];
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
-};
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
-  const data = payload[0];
+  const d = payload[0];
   return (
-    <div className="rounded-lg bg-white px-3 py-2 shadow-lg border border-slate-200/80 text-sm">
-      <p className="font-medium text-slate-900">{data.name}</p>
-      <p className="text-slate-500">
-        {data.value} orçamento{data.value !== 1 ? "s" : ""}
-      </p>
+    <div className="rounded-xl bg-white px-3 py-2 shadow-lg border border-[#0f0f12]/[0.08] text-[12px]">
+      <p className="font-semibold text-[#0f0f12]">{d.name}</p>
+      <p className="text-[#0f0f12]/40">{d.value} orçamento{d.value !== 1 ? "s" : ""}</p>
     </div>
   );
 };
 
 export default function Dashboard() {
-  const { data: orcamentos, isLoading: loadingOrcamentos } = useQuery({
+  const { user } = useAuth();
+
+  const { data: orcamentos = [], isLoading } = useQuery({
     queryKey: ["admin-orcamentos"],
     queryFn: () => entities.Orcamento.listAll(),
     initialData: [],
   });
 
-  const { data: tipologias } = useQuery({
+  const { data: tipologias = [] } = useQuery({
     queryKey: ["tipologias"],
     queryFn: () => entities.Tipologia.filter({ ativo: true }),
     initialData: [],
   });
 
   const stats = React.useMemo(() => {
-    const total = orcamentos.length;
-    const emAndamento = orcamentos.filter((o) =>
-      ["AGUARDANDO_APROVACAO", "AGUARDANDO_PAGAMENTO", "EM_PRODUCAO"].includes(o.status)
-    ).length;
-    const concluidos = orcamentos.filter((o) => o.status === "AGUARDANDO_RETIRADA").length;
-    const valorTotal = orcamentos
-      .filter((o) => o.status !== "CANCELADO")
-      .reduce((sum, o) => sum + (o.preco_total || 0), 0);
-
+    const total      = orcamentos.length;
+    const emAndamento = orcamentos.filter(o => ["AGUARDANDO_APROVACAO", "AGUARDANDO_PAGAMENTO", "EM_PRODUCAO"].includes(o.status)).length;
+    const concluidos  = orcamentos.filter(o => o.status === "AGUARDANDO_RETIRADA").length;
+    const valorTotal  = orcamentos.filter(o => o.status !== "CANCELADO").reduce((s, o) => s + (o.preco_total || 0), 0);
     return { total, emAndamento, concluidos, valorTotal };
   }, [orcamentos]);
 
   const chartData = React.useMemo(() => {
     const counts = {};
-    orcamentos.forEach((o) => {
-      const status = o.status || "AGUARDANDO_APROVACAO";
-      counts[status] = (counts[status] || 0) + 1;
+    orcamentos.forEach(o => {
+      const s = o.status || "AGUARDANDO_APROVACAO";
+      counts[s] = (counts[s] || 0) + 1;
     });
     return Object.entries(counts)
-      .map(([key, value]) => ({
-        name: STATUS_CONFIG[key]?.label || key,
-        value,
-        color: STATUS_CONFIG[key]?.chartColor || "#94a3b8",
-      }))
+      .map(([key, value]) => ({ name: STATUS_CONFIG[key]?.label || key, value, color: STATUS_CONFIG[key]?.color || "#94a3b8" }))
       .sort((a, b) => b.value - a.value);
   }, [orcamentos]);
 
-  const formatStatValue = (card) => {
-    if (card.isCurrency) {
-      return `R$ ${stats[card.key].toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-    }
-    return stats[card.key];
-  };
+  const firstName = user?.nome?.split(" ")[0] || "Admin";
 
-  if (loadingOrcamentos) {
-    return <DashboardSkeleton />;
-  }
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
-    <motion.div
-      className="w-full max-w-7xl mx-auto space-y-6"
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
-      {/* Welcome Banner */}
-      <motion.div variants={item}>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a3a8f] via-[#1a3a8f] to-[#2962cc] p-6 sm:p-8 text-white">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA3KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/5 rounded-full blur-2xl" />
-          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+    <div className="space-y-6 max-w-7xl mx-auto">
 
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p className="text-white/70 text-sm font-medium mb-1">
-                {formatDate().replace(/^./, (c) => c.toUpperCase())}
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                {getGreeting()} 👋
-              </h1>
-              <p className="text-white/70 mt-1.5 text-sm sm:text-base">
-                {stats.emAndamento > 0
-                  ? `Você tem ${stats.emAndamento} orçamento${stats.emAndamento > 1 ? "s" : ""} em andamento`
-                  : "Todos os orçamentos estão em dia"}
-              </p>
+      {/* ── Header ── */}
+      <div className="relative overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a3a8f] via-[#17348a] to-[#122a6b]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+        }} />
+        <div className="pointer-events-none absolute -top-16 -right-16 w-56 h-56 bg-white/[0.04] rounded-full blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 bg-[#e8751a]/[0.08] rounded-full blur-2xl" />
+
+        <div className="relative px-6 py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-[12px] font-medium text-white/35 uppercase tracking-[0.15em] mb-1">
+              {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, c => c.toUpperCase())}
+            </p>
+            <h1 className="text-[22px] font-semibold text-white tracking-tight">
+              {getGreeting()}, {firstName}
+            </h1>
+            <p className="text-[13px] text-white/40 mt-0.5">
+              {stats.emAndamento > 0
+                ? `${stats.emAndamento} orçamento${stats.emAndamento > 1 ? "s" : ""} em andamento`
+                : "Todos os orçamentos estão em dia"}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-3 rounded-xl bg-white/[0.08] border border-white/[0.08] px-4 py-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/[0.12] flex items-center justify-center shrink-0">
+                <Package className="w-4 h-4 text-white" strokeWidth={1.75} />
+              </div>
+              <div>
+                <p className="text-[10px] text-white/35 uppercase tracking-wider leading-none">Tipologias ativas</p>
+                <p className="text-[20px] font-bold text-white tabular-nums leading-tight">{tipologias.length}</p>
+              </div>
             </div>
-            <Link to="/admin/tipologias" className="shrink-0">
-              <Button
-                size="lg"
-                className="bg-white text-[#1a3a8f] hover:bg-[#1a3a8f]/10 shadow-lg shadow-[#1a3a8f]/20 font-semibold rounded-xl h-11 px-5"
-              >
-                <Package className="w-4 h-4 mr-2" />
-                Tipologias
-              </Button>
-            </Link>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {STAT_CARDS.map((card) => (
-          <motion.div key={card.key} variants={item}>
-            <Card className="relative overflow-hidden border-0 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 h-full group">
-              <CardContent className="p-4 sm:p-5 flex flex-col h-full min-h-[110px]">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                    <card.icon className={`w-5 h-5 ${card.text}`} strokeWidth={2} />
-                  </div>
-                  <TrendingUp className="w-4 h-4 text-slate-300" />
-                </div>
-                <p className={`font-bold tabular-nums tracking-tight mt-auto ${card.isCurrency ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl"} text-slate-900`}>
-                  {formatStatValue(card)}
-                </p>
-                <p className="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wider">
-                  {card.label}
-                </p>
-              </CardContent>
-              <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient} opacity-80`} />
-            </Card>
-          </motion.div>
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: "Total",        value: stats.total,        icon: FileText,     color: "#1a3a8f" },
+          { label: "Em andamento", value: stats.emAndamento,  icon: Clock,        color: "#f59e0b" },
+          { label: "Finalizados",  value: stats.concluidos,   icon: CheckCircle2, color: "#10b981" },
+          { label: "Valor total",  value: fmt(stats.valorTotal), icon: DollarSign, color: "#7c3aed", small: true },
+        ].map((card) => (
+          <div key={card.label} className="bg-white rounded-2xl border border-[#0f0f12]/[0.06] p-4 sm:p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: card.color + "15" }}>
+                <card.icon className="w-4 h-4" style={{ color: card.color }} strokeWidth={2} />
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: card.color }} />
+            </div>
+            <p className={`font-bold text-[#0f0f12] tabular-nums tracking-tight leading-none ${card.small ? "text-[18px] sm:text-[20px]" : "text-[28px] sm:text-[32px]"}`}>
+              {card.value}
+            </p>
+            <p className="text-[11px] text-[#0f0f12]/35 font-medium mt-1.5 uppercase tracking-wider">
+              {card.label}
+            </p>
+          </div>
         ))}
       </div>
 
-      {/* Chart + Quick Actions */}
-      <div className="grid lg:grid-cols-5 gap-4 sm:gap-6">
-        {/* Chart */}
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="border-slate-200/80 bg-white h-full rounded-2xl overflow-hidden">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold text-slate-900">
-                Distribuição por Status
-              </CardTitle>
-              <p className="text-xs text-slate-500">{orcamentos.length} orçamentos no total</p>
-            </CardHeader>
-            <CardContent className="pb-5">
-              {chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-[200px] text-sm text-slate-400">
-                  Nenhum dado disponível
-                </div>
-              ) : (
-                <>
-                  <div className="h-[200px] -mx-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={85}
-                          paddingAngle={3}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {chartData.map((entry, index) => (
-                            <Cell key={index} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-2 mt-2">
-                    {chartData.map((entry) => (
-                      <div key={entry.name} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-slate-600 truncate">{entry.name}</span>
-                        </div>
-                        <span className="font-semibold text-slate-900 tabular-nums">{entry.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+      {/* ── Middle: Chart + Quick Links ── */}
+      <div className="grid lg:grid-cols-5 gap-4">
 
-        {/* Quick Actions */}
-        <motion.div variants={item} className="lg:col-span-3">
-          <Card className="border-slate-200/80 bg-white h-full rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-slate-900">
-                Ações Rápidas
-              </CardTitle>
-              <p className="text-xs text-slate-500">Acesse as funções mais utilizadas</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {QUICK_ACTIONS.map((action) => (
-                <Link key={action.to} to={action.to}>
-                  <div className="group flex items-center gap-4 p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all duration-200 cursor-pointer">
-                    <div className={`shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} shadow-md ${action.shadow} flex items-center justify-center transition-transform group-hover:scale-105`}>
-                      <action.icon className="w-5 h-5 text-white" strokeWidth={2} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 text-sm">{action.label}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{action.description}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </div>
-                </Link>
-              ))}
+        {/* Pie chart */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#0f0f12]/[0.06] p-5">
+          <p className="text-[14px] font-semibold text-[#0f0f12] leading-none">Distribuição</p>
+          <p className="text-[12px] text-[#0f0f12]/35 mt-0.5 mb-4">{orcamentos.length} orçamentos</p>
 
-              {/* Tipologias ativas info */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-[#1a3a8f]/10/50 border border-slate-200/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#1a3a8f]/15 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-[#1a3a8f]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Tipologias Ativas</p>
-                    <p className="text-xs text-slate-500">Modelos disponíveis no sistema</p>
-                  </div>
-                </div>
-                <span className="text-2xl font-bold text-[#1a3a8f] tabular-nums">{tipologias.length}</span>
+          {chartData.length === 0 ? (
+            <div className="flex items-center justify-center h-[180px] text-[13px] text-[#0f0f12]/25">
+              Nenhum dado ainda
+            </div>
+          ) : (
+            <>
+              <div className="h-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={chartData} cx="50%" cy="50%" innerRadius={52} outerRadius={78} paddingAngle={3} dataKey="value" stroke="none">
+                      {chartData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <div className="space-y-2 mt-3">
+                {chartData.map(e => (
+                  <div key={e.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.color }} />
+                      <span className="text-[12px] text-[#0f0f12]/50 truncate">{e.name}</span>
+                    </div>
+                    <span className="text-[12px] font-semibold text-[#0f0f12] tabular-nums ml-2 shrink-0">{e.value}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Quick links */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-[#0f0f12]/[0.06] p-5">
+          <p className="text-[14px] font-semibold text-[#0f0f12] leading-none mb-0.5">Acesso rápido</p>
+          <p className="text-[12px] text-[#0f0f12]/35 mb-4">Navegue pelas seções do painel</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {QUICK_LINKS.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="group flex items-center gap-3 p-3.5 rounded-xl border border-[#0f0f12]/[0.05] hover:border-[#0f0f12]/[0.1] hover:bg-[#0f0f12]/[0.015] transition-all duration-150"
+              >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: link.color + "15" }}>
+                  <link.icon className="w-4 h-4" style={{ color: link.color }} strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold text-[#0f0f12]">{link.label}</p>
+                  <p className="text-[11px] text-[#0f0f12]/35 truncate">{link.desc}</p>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#0f0f12]/15 group-hover:text-[#0f0f12]/35 transition-colors shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Recent Orders */}
-      <motion.div variants={item}>
-        <Card className="border-slate-200/80 bg-white rounded-2xl overflow-hidden">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-base font-semibold text-slate-900">
-                Orçamentos Recentes
-              </CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">Últimas movimentações</p>
+      {/* ── Recent Orders ── */}
+      <div className="bg-white rounded-2xl border border-[#0f0f12]/[0.06] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#0f0f12]/[0.05]">
+          <div>
+            <p className="text-[14px] font-semibold text-[#0f0f12]">Orçamentos recentes</p>
+            <p className="text-[12px] text-[#0f0f12]/35 mt-0.5">Últimas movimentações</p>
+          </div>
+          {orcamentos.length > 5 && (
+            <Link
+              to="/admin/orcamentos"
+              className="flex items-center gap-1 text-[12px] font-medium text-[#1a3a8f] hover:text-[#122a6b] transition-colors"
+            >
+              Ver todos <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
+
+        {orcamentos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-12 h-12 rounded-2xl bg-[#0f0f12]/[0.03] flex items-center justify-center mb-3">
+              <FileText className="w-5 h-5 text-[#0f0f12]/20" />
             </div>
-            {orcamentos.length > 5 && (
-              <Link to="/admin/orcamentos">
-                <Button variant="ghost" size="sm" className="text-[#1a3a8f] hover:text-[#1a3a8f] hover:bg-[#1a3a8f]/10 text-xs font-medium">
-                  Ver todos
-                  <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              </Link>
-            )}
-          </CardHeader>
-          <CardContent>
-            {orcamentos.length === 0 ? (
-              <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-4">
-                  <FileText className="w-8 h-8 text-slate-400" />
+            <p className="text-[14px] font-medium text-[#0f0f12]/40">Nenhum orçamento ainda</p>
+            <p className="text-[12px] text-[#0f0f12]/25 mt-1">Os orçamentos criados aparecerão aqui</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#0f0f12]/[0.04]">
+            {orcamentos.slice(0, 5).map(orc => {
+              const cfg = STATUS_CONFIG[orc.status] || STATUS_CONFIG.AGUARDANDO_APROVACAO;
+              return (
+                <div key={orc.id} className="group flex items-center gap-4 px-5 py-3.5 hover:bg-[#0f0f12]/[0.015] transition-colors">
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-semibold text-[#0f0f12] truncate">
+                      {orc.numero || `#${String(orc.id || "").slice(-6)}`}
+                    </p>
+                    <p className="text-[12px] text-[#0f0f12]/35 truncate mt-0.5">
+                      {[orc.tipologia_nome, orc.cliente_nome].filter(Boolean).join(" · ") || "—"}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
+                    <span className="text-[12px] text-[#0f0f12]/40">{cfg.label}</span>
+                  </div>
+                  {orc.preco_total != null && (
+                    <span className="text-[13px] font-semibold text-[#0f0f12] tabular-nums shrink-0 hidden sm:block">
+                      {fmt(orc.preco_total)}
+                    </span>
+                  )}
+                  <ChevronRight className="w-4 h-4 text-[#0f0f12]/10 group-hover:text-[#0f0f12]/30 transition-colors shrink-0" />
                 </div>
-                <p className="text-sm font-semibold text-slate-700">Nenhum orçamento ainda</p>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                  Os orçamentos criados pelos vidraceiros aparecerão aqui
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {orcamentos.slice(0, 5).map((orcamento) => {
-                  const statusConf = STATUS_CONFIG[orcamento.status] || STATUS_CONFIG.AGUARDANDO_APROVACAO;
-                  return (
-                    <div
-                      key={orcamento.id}
-                      className="group flex items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 bg-white hover:bg-slate-50/80 transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-                          style={{ backgroundColor: statusConf.chartColor + "15" }}
-                        >
-                          <FileText
-                            className="w-5 h-5"
-                            style={{ color: statusConf.chartColor }}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 text-sm truncate">
-                            {orcamento.numero || `#${String(orcamento.id || "").slice(-6)}`}
-                          </p>
-                          <p className="text-xs text-slate-500 truncate">
-                            {orcamento.tipologia_nome || "Tipologia"} · {orcamento.cliente_nome || "Cliente"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="shrink-0 flex items-center gap-3">
-                        {orcamento.preco_total != null && (
-                          <span className="text-sm font-semibold text-slate-900 tabular-nums whitespace-nowrap hidden sm:block">
-                            R$ {Number(orcamento.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                          </span>
-                        )}
-                        <Badge className={`shrink-0 text-[11px] font-medium ${statusConf.color}`}>
-                          {statusConf.label}
-                        </Badge>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+    </div>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      <Skeleton className="h-[140px] w-full rounded-2xl" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-[130px] w-full rounded-2xl" />
-        ))}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <Skeleton className="h-[120px] w-full rounded-2xl" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[1,2,3,4].map(i => <Skeleton key={i} className="h-[110px] rounded-2xl" />)}
       </div>
-      <div className="grid lg:grid-cols-5 gap-4 sm:gap-6">
-        <Skeleton className="h-[360px] w-full rounded-2xl lg:col-span-2" />
-        <Skeleton className="h-[360px] w-full rounded-2xl lg:col-span-3" />
+      <div className="grid lg:grid-cols-5 gap-4">
+        <Skeleton className="h-[340px] rounded-2xl lg:col-span-2" />
+        <Skeleton className="h-[340px] rounded-2xl lg:col-span-3" />
       </div>
-      <Skeleton className="h-[300px] w-full rounded-2xl" />
+      <Skeleton className="h-[280px] rounded-2xl" />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import Categorias from './pages/admin/Categorias.jsx';
-import Configuracoes from './pages/Configuracoes';
+import Configuracoes from './pages/admin/Configuracoes';
 import Dashboard from './pages/Dashboard';
 import NovoOrcamento from './pages/NovoOrcamento';
 import Orcamentos from './pages/Orcamentos';
